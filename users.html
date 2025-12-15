@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Users & Roles | ARGUS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/app.css">
+</head>
+
+<body>
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="sidebar-brand">ARGUS</div>
+            <nav class="nav-menu">
+                <a href="dashboard.html" class="nav-link">
+                    <i class="fa-solid fa-chart-line"></i> Dashboard
+                </a>
+                <a href="transactions.html" class="nav-link">
+                    <i class="fa-solid fa-list"></i> Transactions
+                </a>
+                <a href="alerts.html" class="nav-link">
+                    <i class="fa-solid fa-bell"></i> Alerts
+                </a>
+                <a href="users.html" class="nav-link active">
+                    <i class="fa-solid fa-users"></i> Users
+                </a>
+                <a href="audit.html" class="nav-link">
+                    <i class="fa-solid fa-file-contract"></i> Audit Log
+                </a>
+                <a href="settings.html" class="nav-link">
+                    <i class="fa-solid fa-cog"></i> Settings
+                </a>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <header class="top-bar">
+                <div class="page-title">Access Control</div>
+                <div class="user-info">Admin User</div>
+            </header>
+
+            <div class="content-area">
+                <div class="card">
+                    <div class="card-header">
+                        <h3>System Users</h3>
+                    </div>
+
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>User Name</th>
+                                <th>Role</th>
+                                <th>Department</th>
+                                <th>Access Level</th>
+                                <th>Status</th>
+                                <th>Last Active</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td style="font-weight: 600;">Admin User</td>
+                                <td><span class="badge" style="background: rgba(0,102,255,0.2); color: #0066FF;">SYSTEM
+                                        ADMIN</span></td>
+                                <td>IT Security</td>
+                                <td>Level 5 (Full Access)</td>
+                                <td><span class="badge badge-success">ACTIVE</span></td>
+                                <td>Currently logged in</td>
+                            </tr>
+                            <tr>
+                                <td style="font-weight: 600;">Sarah Connor</td>
+                                <td><span class="badge badge-success">ANALYST</span></td>
+                                <td>Fraud Investigation</td>
+                                <td>Level 3 (Read/Write)</td>
+                                <td><span class="badge badge-success">ACTIVE</span></td>
+                                <td>2 mins ago</td>
+                            </tr>
+                            <tr>
+                                <td style="font-weight: 600;">John Smith</td>
+                                <td><span class="badge badge-success">AUDITOR</span></td>
+                                <td>Compliance</td>
+                                <td>Level 1 (Read Only)</td>
+                                <td><span class="badge badge-warning">LOCKED</span></td>
+                                <td>1 day ago</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+
+</html>

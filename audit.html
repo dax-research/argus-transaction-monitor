@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audit Log | ARGUS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/app.css">
+</head>
+
+<body>
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="sidebar-brand">ARGUS</div>
+            <nav class="nav-menu">
+                <a href="dashboard.html" class="nav-link">
+                    <i class="fa-solid fa-chart-line"></i> Dashboard
+                </a>
+                <a href="transactions.html" class="nav-link">
+                    <i class="fa-solid fa-list"></i> Transactions
+                </a>
+                <a href="alerts.html" class="nav-link">
+                    <i class="fa-solid fa-bell"></i> Alerts
+                </a>
+                <a href="users.html" class="nav-link">
+                    <i class="fa-solid fa-users"></i> Users
+                </a>
+                <a href="audit.html" class="nav-link active">
+                    <i class="fa-solid fa-file-contract"></i> Audit Log
+                </a>
+                <a href="settings.html" class="nav-link">
+                    <i class="fa-solid fa-cog"></i> Settings
+                </a>
+            </nav>
+        </aside>
+
+        <main class="main-content">
+            <header class="top-bar">
+                <div class="page-title">Immutable Audit Trail</div>
+                <div class="user-info">Admin User</div>
+            </header>
+
+            <div class="content-area">
+                <div class="card">
+                    <div class="card-header">
+                        <h3>System Activity Log</h3>
+                    </div>
+
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Log ID</th>
+                                <th>Timestamp</th>
+                                <th>Actor</th>
+                                <th>Action</th>
+                                <th>Target</th>
+                                <th>IP Address</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td style="font-family: 'Courier New', monospace; color: rgba(255,255,255,0.6);">
+                                    LOG-000192</td>
+                                <td style="font-family: 'Courier New', monospace; font-size: 13px;">2024-12-15 22:30:00
+                                </td>
+                                <td>Admin User</td>
+                                <td style="font-weight: 600;">LOGIN_SUCCESS</td>
+                                <td>System</td>
+                                <td style="font-family: 'Courier New', monospace; font-size: 13px;">10.0.0.51</td>
+                            </tr>
+                            <tr>
+                                <td style="font-family: 'Courier New', monospace; color: rgba(255,255,255,0.6);">
+                                    LOG-000191</td>
+                                <td style="font-family: 'Courier New', monospace; font-size: 13px;">2024-12-15 22:28:15
+                                </td>
+                                <td>Sarah Connor</td>
+                                <td>VIEW_TRANSACTION</td>
+                                <td style="font-family: 'Courier New', monospace;">TXN-098713</td>
+                                <td style="font-family: 'Courier New', monospace; font-size: 13px;">10.0.0.52</td>
+                            </tr>
+                            <tr>
+                                <td style="font-family: 'Courier New', monospace; color: rgba(255,255,255,0.6);">
+                                    LOG-000190</td>
+                                <td style="font-family: 'Courier New', monospace; font-size: 13px;">2024-12-15 22:25:00
+                                </td>
+                                <td>System</td>
+                                <td>ALERT_GENERATED</td>
+                                <td>Rule: Velocity Check</td>
+                                <td style="font-family: 'Courier New', monospace; font-size: 13px;">LOCALHOST</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div
+                        style="padding: 20px; background: rgba(0,102,255,0.05); border-top: 1px solid rgba(0,102,255,0.2); margin-top: 20px; border-radius: 8px;">
+                        <small style="color: rgba(255,255,255,0.6);">
+                            <i class="fa-solid fa-lock"></i> All log entries are cryptographically signed and immutable.
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+
+</html>
