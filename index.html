@@ -1,15 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
 
-  <!DOCTYPE html>
-  <html lang="en">
-    <head>
-      <meta charset="UTF-8" />
-      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-      <title>Fraud Detection Website</title>
-    </head>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ARGUS | Next-Generation Financial Intelligence</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="css/landing.css">
+  <link rel="stylesheet" href="css/modal.css">
+</head>
 
-    <body>
-      <div id="root"></div>
-      <script type="module" src="/src/main.tsx"></script>
-    </body>
-  </html>
-  
+<body>
+  <canvas id="particleCanvas"></canvas>
+  <div class="cursor-follower" id="cursorFollower"></div>
+
+  <!-- Premium Navigation -->
+  <nav class="nav" id="navbar">
+    <div class="logo">ARGUS</div>
+    <div class="nav-links">
+      <a href="#features">Platform</a>
+      <a href="#how-it-works">How It Works</a>
+      <a href="#about">About Us</a>
+      <a href="#contact">Contact Us</a>
+      <a href="login.html" class="btn-nav">Launch App →</a>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="grid-overlay"></div>
+    <div class="hero-glow glow-1"></div>
+    <div class="hero-glow glow-2"></div>
+
+    <div class="hero-content">
+      <div class="hero-badge">
+        <span class="badge-dot"></span>
+        <span>Trusted by Fortune 500 Financial Institutions</span>
+      </div>
+      <h1>
+        The Future of<br>
+        <span class="gradient-text">Financial Intelligence</span>
+      </h1>
+      <p>
+        Real-time fraud detection, AML compliance, and risk management powered by enterprise AI.
+        Monitor billions in transactions with institutional-grade security.
+      </p>
+      <div class="hero-buttons">
+        <a href="login.html" class="btn-hero-primary">
+          Access Platform <i class="fa-solid fa-arrow-right"></i>
+        </a>
+        <button class="btn-hero-secondary" onclick="openVideoModal()">
+          <i class="fa-solid fa-play"></i> Watch Demo
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- [Rest of the file content until before footer...] -->
+
+  <!-- Video Modal -->
+  <div id="videoModal" class="modal">
+    <div class="modal-content video-modal-content">
+      <div class="modal-header">
+        <h2>Platform Demo</h2>
+        <span class="close" onclick="closeVideoModal()">&times;</span>
+      </div>
+      <div class="video-container">
+        <!-- Placeholder for AI Video - Using a high-tech abstract video embed -->
+        <iframe width="100%" height="100%"
+          src="https://www.youtube.com/embed/JrHswX1W3y4?autoplay=0&controls=0&rel=0&modestbranding=1"
+          title="ARGUS AI Demo" frameborder="0"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+          allowfullscreen></iframe>
+      </div>
+      <div class="video-footer" style="padding: 20px 40px;">
+        <p style="color: rgba(255,255,255,0.6); font-size: 14px;">
+          <i class="fa-solid fa-robot" style="margin-right: 8px; color: #0066FF;"></i>
+          Powered by ARGUS Neural Engine v4.0
+        </p>
+      </div>
+    </div>
+  </div>
+  </div>
+  </section>
+
+  <!-- Floating Feature Cards -->
+  <section class="floating-cards" id="features">
+    <div class="card-grid">
+      <div class="feature-card">
+        <div class="feature-icon">
+          <i class="fa-solid fa-shield-halved"></i>
+        </div>
+        <h3>AI-Powered Detection</h3>
+        <p>Machine learning models analyze patterns across billions of transactions in real-time with 99.9% accuracy.
+        </p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon">
+          <i class="fa-solid fa-lock"></i>
+        </div>
+        <h3>Bank-Grade Security</h3>
+        <p>Military-grade encryption, zero-trust architecture, and SOC2 Type II certification for enterprise peace of
+          mind.</p>
+      </div>
+
+      <div class="feature-card">
+        <div class="feature-icon">
+          <i class="fa-solid fa-bolt"></i>
+        </div>
+        <h3>Lightning Fast</h3>
+        <p>Sub-12ms detection latency. Monitor global transactions with real-time alerts and instant compliance checks.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Stats -->
+  <section class="stats-section" id="stats">
+    <div class="stats-grid">
+      <div class="stat-item">
+        <span class="stat-number" data-target="842">0</span>
+        <span class="stat-label">Billion Monitored</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-number">99.99%</span>
+        <span class="stat-label">Uptime SLA</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-number">&lt;12ms</span>
+        <span class="stat-label">Detection Speed</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-number" data-target="127">0</span>
+        <span class="stat-label">Countries</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="cta-section">
+    <div class="cta-content">
+      <h2><span class="gradient-text">Ready to Transform</span><br>Your Financial Operations?</h2>
+      <p>Join leading institutions protecting billions in assets with ARGUS intelligence platform.</p>
+      <a href="login.html" class="btn-hero-primary">
+        Get Started Now <i class="fa-solid fa-arrow-right"></i>
+      </a>
+    </div>
+  </section>
+
+  <!-- How It Works -->
+  <section class="info-section" id="how-it-works" style="padding: 100px 40px; background: rgba(0,31,63,0.3);">
+    <div style="max-width: 1200px; margin: 0 auto; text-align: center;">
+      <h2 style="font-size: 48px; font-weight: 900; margin-bottom: 24px;">How It Works</h2>
+      <p
+        style="font-size: 20px; color: rgba(255,255,255,0.6); margin-bottom: 60px; max-width: 700px; margin-left: auto; margin-right: auto;">
+        Our AI-powered platform monitors your financial transactions in real-time, flagging suspicious activity
+        instantly.
+      </p>
+      <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 40px; text-align: left;">
+        <div>
+          <div
+            style="width: 60px; height: 60px; background: rgba(0,102,255,0.15); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 20px; font-size: 24px; font-weight: 900; color: #0066FF;">
+            1</div>
+          <h3 style="font-size: 20px; margin-bottom: 12px;">Connect Your Systems</h3>
+          <p style="color: rgba(255,255,255,0.5); line-height: 1.6;">Integrate ARGUS with your existing financial
+            infrastructure via secure APIs.</p>
+        </div>
+        <div>
+          <div
+            style="width: 60px; height: 60px; background: rgba(0,102,255,0.15); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 20px; font-size: 24px; font-weight: 900; color: #0066FF;">
+            2</div>
+          <h3 style="font-size: 20px; margin-bottom: 12px;">AI Analyzes in Real-Time</h3>
+          <p style="color: rgba(255,255,255,0.5); line-height: 1.6;">Our machine learning models process billions of
+            transactions instantly.</p>
+        </div>
+        <div>
+          <div
+            style="width: 60px; height: 60px; background: rgba(0,102,255,0.15); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-bottom: 20px; font-size: 24px; font-weight: 900; color: #0066FF;">
+            3</div>
+          <h3 style="font-size: 20px; margin-bottom: 12px;">Get Instant Alerts</h3>
+          <p style="color: rgba(255,255,255,0.5); line-height: 1.6;">Receive immediate notifications for any suspicious
+            or high-risk activities.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- About Us -->
+  <section class="info-section" id="about" style="padding: 100px 40px;">
+    <div style="max-width: 800px; margin: 0 auto; text-align: center;">
+      <h2 style="font-size: 48px; font-weight: 900; margin-bottom: 24px;">About Us</h2>
+      <p style="font-size: 18px; color: rgba(255,255,255,0.7); line-height: 1.8; margin-bottom: 32px;">
+        ARGUS is a next-generation financial intelligence platform trusted by Fortune 500 institutions worldwide.
+        Founded by experts in cybersecurity and financial technology, we leverage cutting-edge AI to protect billions
+        in assets from fraud, money laundering, and financial crimes.
+      </p>
+      <p style="font-size: 18px; color: rgba(255,255,255,0.7); line-height: 1.8;">
+        Our mission is to make financial systems safer, more transparent, and compliant with global regulations.
+        With ARGUS, institutions gain unparalleled visibility into their transaction networks while maintaining
+        the highest standards of data security and privacy.
+      </p>
+    </div>
+  </section>
+
+  <!-- Contact Us -->
+  <section class="info-section" id="contact" style="padding: 100px 40px; background: rgba(0,31,63,0.3);">
+    <div style="max-width: 600px; margin: 0 auto; text-align: center;">
+      <h2 style="font-size: 48px; font-weight: 900; margin-bottom: 24px;">Contact Us</h2>
+      <p style="font-size: 18px; color: rgba(255,255,255,0.6); margin-bottom: 48px;">
+        Ready to secure your financial operations? Get in touch with our team.
+      </p>
+      <div style="display: flex; flex-direction: column; gap: 24px; align-items: center;">
+        <div style="display: flex; align-items: center; gap: 16px;">
+          <i class="fa-solid fa-envelope" style="font-size: 24px; color: #0066FF;"></i>
+          <span style="font-size: 18px;">contact@argus.financial</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 16px;">
+          <i class="fa-solid fa-phone" style="font-size: 24px; color: #0066FF;"></i>
+          <span style="font-size: 18px;">+1 (555) 123-4567</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 16px;">
+          <i class="fa-solid fa-location-dot" style="font-size: 24px; color: #0066FF;"></i>
+          <span style="font-size: 18px;">New York, NY | London, UK</span>
+        </div>
+      </div>
+      <div style="margin-top: 48px;">
+        <button class="btn-hero-primary" onclick="openDemoModal()">Schedule a Demo</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <p>&copy; 2024 ARGUS Financial Systems. Enterprise-Grade Security & Compliance.</p>
+  </footer>
+
+  <!-- Demo Modal -->
+  <div id="demoModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Schedule a Demo</h2>
+        <span class="close" onclick="closeDemoModal()">&times;</span>
+      </div>
+      <form id="demoForm" class="demo-form">
+        <div class="form-row">
+          <div class="form-group">
+            <label>First Name *</label>
+            <input type="text" name="firstName" required placeholder="John">
+          </div>
+          <div class="form-group">
+            <label>Last Name *</label>
+            <input type="text" name="lastName" required placeholder="Doe">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Work Email *</label>
+          <input type="email" name="email" required placeholder="john.doe@company.com">
+        </div>
+
+        <div class="form-group">
+          <label>Company Name *</label>
+          <input type="text" name="company" required placeholder="Your Company">
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Phone Number</label>
+            <input type="tel" name="phone" placeholder="+1 (555) 123-4567">
+          </div>
+          <div class="form-group">
+            <label>Company Size *</label>
+            <select name="companySize" required>
+              <option value="">Select size</option>
+              <option value="1-50">1-50 employees</option>
+              <option value="51-200">51-200 employees</option>
+              <option value="201-1000">201-1000 employees</option>
+              <option value="1000+">1000+ employees</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Preferred Date & Time</label>
+          <input type="datetime-local" name="preferredDate">
+        </div>
+
+        <div class="form-group">
+          <label>Message (Optional)</label>
+          <textarea name="message" rows="4" placeholder="Tell us about your needs..."></textarea>
+        </div>
+
+        <button type="submit" class="btn-submit">
+          <span class="btn-text">Request Demo</span>
+          <span class="btn-loader" style="display: none;">Sending...</span>
+        </button>
+      </form>
+      <div id="successMessage" style="display: none; text-align: center; padding: 40px;">
+        <i class="fa-solid fa-circle-check" style="font-size: 64px; color: #51CF66; margin-bottom: 20px;"></i>
+        <h3 style="margin-bottom: 12px;">Demo Requested!</h3>
+        <p style="color: rgba(255,255,255,0.6);">Our team will contact you within 24 hours.</p>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/particles.js"></script>
+  <script src="js/landing.js"></script>
+  <script src="js/demo-modal.js"></script>
+</body>
+
+</html>
