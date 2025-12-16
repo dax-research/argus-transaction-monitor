@@ -54,11 +54,15 @@ if (liveFeed) {
 
         liveFeed.insertBefore(item, liveFeed.firstChild);
 
-        // Animate in
+        // Animate in using AnimationUtils if available, otherwise use basic animation
         setTimeout(() => {
-            item.style.transition = 'all 0.4s ease';
-            item.style.opacity = '1';
-            item.style.transform = 'translateY(0)';
+            if (window.AnimationUtils && window.AnimationUtils.animateNewElement) {
+                window.AnimationUtils.animateNewElement(item);
+            } else {
+                item.style.transition = 'all 0.4s ease';
+                item.style.opacity = '1';
+                item.style.transform = 'translateY(0)';
+            }
         }, 100);
 
         // Keep only last 10
