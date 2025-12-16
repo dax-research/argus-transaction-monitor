@@ -8,6 +8,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="css/app.css">
+    <link rel="stylesheet" href="css/animations.css">
 </head>
 
 <body>
@@ -47,17 +48,17 @@
                 <div class="kpi-grid">
                     <div class="kpi-card">
                         <div class="kpi-label">Transaction Volume (24h)</div>
-                        <div class="kpi-value">$142.5M</div>
+                        <div class="kpi-value" data-counter="142.5" data-prefix="$" data-suffix="M">$0M</div>
                         <div class="kpi-change">+2.4% vs yesterday</div>
                     </div>
                     <div class="kpi-card">
                         <div class="kpi-label">Flagged Transactions</div>
-                        <div class="kpi-value" style="color: #FF6B6B;">12</div>
+                        <div class="kpi-value" style="color: #FF6B6B;" data-counter="12">0</div>
                         <div class="kpi-change">Requiring review</div>
                     </div>
                     <div class="kpi-card">
                         <div class="kpi-label">Active Users</div>
-                        <div class="kpi-value">48</div>
+                        <div class="kpi-value" data-counter="48">0</div>
                         <div class="kpi-change">Across 3 regions</div>
                     </div>
                     <div class="kpi-card">
@@ -68,9 +69,9 @@
                 </div>
 
                 <!-- Live Feed -->
-                <div class="card">
+                <div class="card animate-on-scroll">
                     <div class="card-header">
-                        <h3>Live Transaction Feed</h3>
+                        <h3>Live Transaction Feed <span class="live-indicator"></span></h3>
                     </div>
                     <div id="liveFeed" class="live-feed"></div>
                 </div>
@@ -79,6 +80,7 @@
     </div>
 
     <script src="js/app.js"></script>
+    <script src="js/animations.js"></script>
 </body>
 
 </html>
