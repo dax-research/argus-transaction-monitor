@@ -33,7 +33,7 @@ const animateCounter = (element) => {
     }, 16);
 };
 
-// Intersection Observer for animations
+// Intersection Observer for animations (stats, cards, reveals)
 const observer = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
         if (entry.isIntersecting) {
@@ -42,11 +42,12 @@ const observer = new IntersectionObserver((entries) => {
             }
             entry.target.style.opacity = '1';
             entry.target.style.transform = 'translateY(0)';
+            entry.target.classList.add('visible');
         }
     });
-}, { threshold: 0.1 });
+}, { threshold: 0.15 });
 
-document.querySelectorAll('.stat-item, .feature-card').forEach((el, index) => {
+document.querySelectorAll('.stat-item, .feature-card, .reveal-up').forEach((el, index) => {
     el.style.opacity = '0';
     el.style.transform = 'translateY(30px)';
     el.style.transition = 'opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1), transform 0.8s cubic-bezier(0.4, 0, 0.2, 1)';
@@ -76,6 +77,20 @@ document.querySelectorAll('.feature-card').forEach(card => {
 
     card.addEventListener('mouseleave', () => {
         card.style.transform = 'perspective(1000px) rotateX(0) rotateY(0) scale3d(1, 1, 1)';
+    });
+});
+
+// Magnetic buttons
+document.querySelectorAll('.magnetic').forEach(btn => {
+    const strength = 12;
+    btn.addEventListener('mousemove', (e) => {
+        const rect = btn.getBoundingClientRect();
+        const offsetX = (e.clientX - rect.left - rect.width / 2) / (rect.width / 2);
+        const offsetY = (e.clientY - rect.top - rect.height / 2) / (rect.height / 2);
+        btn.style.transform = `translate(${offsetX * strength}px, ${offsetY * strength}px)`;
+    });
+    btn.addEventListener('mouseleave', () => {
+        btn.style.transform = 'translate(0,0)';
     });
 });
 

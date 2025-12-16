@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Animation Test | ARGUS</title>
+    <link rel="stylesheet" href="css/app.css">
+    <link rel="stylesheet" href="css/animations.css">
+    <style>
+        body {
+            padding: 40px;
+            background: #0A0E27;
+            color: white;
+        }
+        .test-section {
+            margin: 40px 0;
+            padding: 20px;
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 8px;
+        }
+        h2 {
+            color: #0066FF;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body class="page-transition">
+    <h1 style="margin-bottom: 40px;">Animation Test Page</h1>
+    
+    <div class="test-section">
+        <h2>1. KPI Cards (should scale in with delays)</h2>
+        <div class="kpi-grid">
+            <div class="kpi-card">
+                <div class="kpi-label">Test Card 1</div>
+                <div class="kpi-value">100</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-label">Test Card 2</div>
+                <div class="kpi-value">200</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-label">Test Card 3</div>
+                <div class="kpi-value">300</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-label">Test Card 4</div>
+                <div class="kpi-value">400</div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>2. Scroll Animation (scroll down to see)</h2>
+        <div style="height: 300px;"></div>
+        <div class="card animate-on-scroll">
+            <h3>This card should animate when scrolled into view</h3>
+        </div>
+    </div>
+    
+    <div class="test-section">
+        <h2>3. Counter Animation</h2>
+        <div class="kpi-value" data-counter="1000" data-prefix="$" data-suffix="">$0</div>
+    </div>
+    
+    <div class="test-section">
+        <h2>4. Live Indicator (should pulse)</h2>
+        <p>Status: <span class="live-indicator"></span> Online</p>
+    </div>
+    
+    <div class="test-section">
+        <h2>5. Staggered Animation</h2>
+        <div class="stagger-animation">Item 1</div>
+        <div class="stagger-animation">Item 2</div>
+        <div class="stagger-animation">Item 3</div>
+    </div>
+    
+    <div class="test-section">
+        <h2>6. Table Rows</h2>
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td>1</td><td>Row 1</td></tr>
+                <tr><td>2</td><td>Row 2</td></tr>
+                <tr><td>3</td><td>Row 3</td></tr>
+            </tbody>
+        </table>
+    </div>
+    
+    <script src="js/animations.js"></script>
+    <script>
+        console.log('Animation test page loaded');
+        console.log('AnimationUtils available:', typeof window.AnimationUtils !== 'undefined');
+        setTimeout(() => {
+            console.log('Checking animations after 1 second...');
+            const cards = document.querySelectorAll('.kpi-card');
+            cards.forEach((card, i) => {
+                const computed = window.getComputedStyle(card);
+                console.log(`Card ${i + 1} - Opacity: ${computed.opacity}, Transform: ${computed.transform}`);
+            });
+        }, 1000);
+    </script>
+</body>
+</html>
+

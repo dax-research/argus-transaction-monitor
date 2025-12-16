@@ -203,37 +203,54 @@
 
 /* Content Area Animation */
 .content-area {
-    animation: fadeInUp 0.6s ease-out 0.2s both;
+    animation: fadeInUp 0.8s ease-out 0.1s both;
 }
 
-/* KPI Cards Animation */
+/* KPI Cards Animation - Initial hidden state */
 .kpi-card {
-    animation: scaleIn 0.5s ease-out both;
+    opacity: 0;
+    transform: scale(0.8) translateY(20px);
+    animation: scaleIn 0.6s ease-out both;
 }
 
-.kpi-card:nth-child(1) { animation-delay: 0.1s; }
-.kpi-card:nth-child(2) { animation-delay: 0.2s; }
-.kpi-card:nth-child(3) { animation-delay: 0.3s; }
-.kpi-card:nth-child(4) { animation-delay: 0.4s; }
+.kpi-card:nth-child(1) { animation-delay: 0.2s; }
+.kpi-card:nth-child(2) { animation-delay: 0.3s; }
+.kpi-card:nth-child(3) { animation-delay: 0.4s; }
+.kpi-card:nth-child(4) { animation-delay: 0.5s; }
 
-/* Table Row Animation */
+/* Table Row Animation - Initial hidden state */
 .data-table tbody tr {
-    animation: slideUp 0.4s ease-out both;
+    opacity: 0;
+    transform: translateY(15px);
+    animation: slideUp 0.5s ease-out both;
 }
 
-/* Card Animation */
-.card {
-    animation: fadeInUp 0.5s ease-out both;
+.data-table tbody tr:nth-child(1) { animation-delay: 0.1s; }
+.data-table tbody tr:nth-child(2) { animation-delay: 0.15s; }
+.data-table tbody tr:nth-child(3) { animation-delay: 0.2s; }
+.data-table tbody tr:nth-child(4) { animation-delay: 0.25s; }
+.data-table tbody tr:nth-child(5) { animation-delay: 0.3s; }
+.data-table tbody tr:nth-child(n+6) { animation-delay: 0.35s; }
+
+/* Card Animation - Initial hidden state */
+.card:not(.animate-on-scroll) {
+    opacity: 0;
+    transform: translateY(30px);
+    animation: fadeInUp 0.7s ease-out 0.3s both;
 }
 
-/* Sidebar Animation */
+/* Sidebar Animation - Initial hidden state */
 .sidebar {
-    animation: fadeInLeft 0.5s ease-out;
+    opacity: 0;
+    transform: translateX(-30px);
+    animation: fadeInLeft 0.6s ease-out both;
 }
 
-/* Top Bar Animation */
+/* Top Bar Animation - Initial hidden state */
 .top-bar {
-    animation: fadeInDown 0.5s ease-out;
+    opacity: 0;
+    transform: translateY(-20px);
+    animation: fadeInDown 0.6s ease-out 0.1s both;
 }
 
 /* Loading Spinner */
