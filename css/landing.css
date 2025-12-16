@@ -174,6 +174,68 @@ body {
     z-index: 1;
 }
 
+.hero-effects {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    z-index: 1;
+    pointer-events: none;
+}
+
+.floating-orb {
+    position: absolute;
+    width: 220px;
+    height: 220px;
+    border-radius: 50%;
+    filter: blur(40px);
+    opacity: 0.45;
+    mix-blend-mode: screen;
+    background: radial-gradient(circle at 30% 30%, rgba(0, 102, 255, 0.65), transparent 60%),
+        radial-gradient(circle at 70% 70%, rgba(124, 58, 237, 0.6), transparent 65%);
+    animation: floatOrb 14s ease-in-out infinite;
+}
+
+.floating-orb.orb-a {
+    top: 5%;
+    left: 10%;
+    animation-delay: 0s;
+}
+
+.floating-orb.orb-b {
+    bottom: 10%;
+    right: 8%;
+    animation-delay: 2s;
+}
+
+.floating-orb.orb-c {
+    top: 40%;
+    left: 55%;
+    width: 280px;
+    height: 280px;
+    opacity: 0.35;
+    animation-delay: 4s;
+}
+
+@keyframes floatOrb {
+    0% { transform: translate3d(0, 0, 0) scale(1); opacity: 0.5; }
+    50% { transform: translate3d(20px, -25px, 0) scale(1.05); opacity: 0.7; }
+    100% { transform: translate3d(0, 0, 0) scale(1); opacity: 0.5; }
+}
+
+.scan-line {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(120deg, transparent 0%, rgba(255, 255, 255, 0.08) 50%, transparent 100%);
+    transform: translateX(-100%);
+    animation: scanAcross 8s linear infinite;
+    opacity: 0.4;
+}
+
+@keyframes scanAcross {
+    0% { transform: translateX(-120%); }
+    100% { transform: translateX(120%); }
+}
+
 @keyframes gridMove {
     0% {
         transform: translate(0, 0);
@@ -356,6 +418,28 @@ body {
     display: inline-flex;
     align-items: center;
     gap: 12px;
+}
+
+.magnetic {
+    position: relative;
+    transition: transform 0.2s ease, box-shadow 0.3s ease;
+    will-change: transform;
+}
+
+.magnetic:hover {
+    box-shadow: 0 14px 36px rgba(0, 102, 255, 0.4);
+}
+
+/* Reveal animations */
+.reveal-up {
+    opacity: 0;
+    transform: translateY(40px);
+    transition: opacity 0.8s ease, transform 0.8s ease;
+}
+
+.reveal-up.visible {
+    opacity: 1;
+    transform: translateY(0);
 }
 
 .btn-hero-secondary:hover {

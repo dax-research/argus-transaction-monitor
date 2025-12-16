@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ARGUS | Access</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/login.css">
+</head>
+
+<body class="auth-body">
+    <div class="auth-wrapper">
+        <div class="auth-panel auth-visual">
+            <div class="auth-visual-overlay"></div>
+            <div class="auth-visual-content">
+                <p class="eyebrow">ARGUS Platform</p>
+                <h1>Welcome</h1>
+                <p class="lede">
+                    Real-time fraud detection, AML compliance, and risk management.
+                    Protect every transaction with enterprise-grade security.
+                </p>
+                <a class="link-ghost" href="index.html">Back to Home →</a>
+            </div>
+        </div>
+
+        <div class="auth-panel auth-forms">
+            <div class="auth-toggle">
+                <button class="toggle-btn active" data-target="registerForm">Register</button>
+                <button class="toggle-btn" data-target="loginForm">Log In</button>
+            </div>
+
+            <form id="registerForm" class="auth-form">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>First Name</label>
+                        <input type="text" placeholder="Alex" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Last Name</label>
+                        <input type="text" placeholder="Morgan" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" placeholder="alex.morgan@company.com" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" placeholder="Create a strong password" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Confirm Password</label>
+                    <input type="password" placeholder="Re-enter password" required>
+                </div>
+
+                <div class="checkbox-row">
+                    <input type="checkbox" id="terms" required>
+                    <label for="terms">I accept the <a href="#">Terms of Use</a> & <a href="#">Privacy Policy</a></label>
+                </div>
+
+                <button type="submit" class="btn-primary full">Register Now</button>
+            </form>
+
+            <form id="loginForm" class="auth-form" style="display:none;">
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" placeholder="you@company.com" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" placeholder="Password" required>
+                </div>
+
+                <div class="checkbox-row">
+                    <input type="checkbox" id="remember">
+                    <label for="remember">Remember me</label>
+                </div>
+
+                <button type="submit" class="btn-primary full">Log In</button>
+                <p class="helper">Forgot password? <a href="#">Reset</a></p>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const toggleButtons = document.querySelectorAll('.toggle-btn');
+        const registerForm = document.getElementById('registerForm');
+        const loginForm = document.getElementById('loginForm');
+
+        toggleButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                toggleButtons.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+
+                if (btn.dataset.target === 'registerForm') {
+                    registerForm.style.display = 'block';
+                    loginForm.style.display = 'none';
+                } else {
+                    registerForm.style.display = 'none';
+                    loginForm.style.display = 'block';
+                }
+            });
+        });
+    </script>
+</body>
+
+</html>
+
