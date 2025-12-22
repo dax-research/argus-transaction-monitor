@@ -5,7 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ARGUS | Access</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="css/login.css">
 </head>
@@ -60,7 +61,8 @@
 
                 <div class="checkbox-row">
                     <input type="checkbox" id="terms" required>
-                    <label for="terms">I accept the <a href="#">Terms of Use</a> & <a href="#">Privacy Policy</a></label>
+                    <label for="terms">I accept the <a href="#">Terms of Use</a> & <a href="#">Privacy
+                            Policy</a></label>
                 </div>
 
                 <button type="submit" class="btn-primary full">Register Now</button>
@@ -93,6 +95,7 @@
         const registerForm = document.getElementById('registerForm');
         const loginForm = document.getElementById('loginForm');
 
+        // Toggle functionality
         toggleButtons.forEach(btn => {
             btn.addEventListener('click', () => {
                 toggleButtons.forEach(b => b.classList.remove('active'));
@@ -107,8 +110,35 @@
                 }
             });
         });
+
+        // Login Handler
+        loginForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const btn = loginForm.querySelector('button');
+            const originalText = btn.innerText;
+
+            btn.innerText = 'Logging In...';
+            btn.disabled = true;
+
+            setTimeout(() => {
+                window.location.href = 'dashboard.html';
+            }, 1000);
+        });
+
+        // Register Handler
+        registerForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const btn = registerForm.querySelector('button');
+            const originalText = btn.innerText;
+
+            btn.innerText = 'Creating Account...';
+            btn.disabled = true;
+
+            setTimeout(() => {
+                window.location.href = 'dashboard.html';
+            }, 1000);
+        });
     </script>
 </body>
 
 </html>
-
