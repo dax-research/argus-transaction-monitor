@@ -1,3 +1,5 @@
+{% load static %}
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -8,8 +10,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
     rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <link rel="stylesheet" href="css/landing.css">
-  <link rel="stylesheet" href="css/modal.css">
+  <link rel="stylesheet" href="{% static 'css/landing.css' %}">
+  <link rel="stylesheet" href="{% static 'css/modal.css' %}">
 </head>
 
 <body>
@@ -241,7 +243,7 @@
 
   <!-- Footer -->
   <footer class="footer">
-    <p>&copy; 2024 ARGUS Financial Systems. Enterprise-Grade Security & Compliance.</p>
+    <p>&copy; 2025 ARGUS.ai Financial Systems. Enterprise-Grade Security & Compliance.</p>
   </footer>
 
   <!-- Demo Modal -->
@@ -313,9 +315,9 @@
     </div>
   </div>
 
-  <script src="js/particles.js"></script>
-  <script src="js/landing.js"></script>
-  <script src="js/demo-modal.js"></script>
+  <script src="{% static 'js/particles.js' %}"></script>
+  <script src="{% static 'js/landing.js' %}"></script>
+  <script src="{% static 'js/demo-modal.js' %}"></script>
 </body>
 
 </html>

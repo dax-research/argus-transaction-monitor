@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 
@@ -7,8 +8,8 @@
     <title>Users & Roles | ARGUS</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="css/app.css">
-    <link rel="stylesheet" href="css/animations.css">
+    <link rel="stylesheet" href="{% static 'css/app.css' %}">
+    <link rel="stylesheet" href="{% static 'css/animations.css' %}">
 </head>
 
 <body class="page-transition">
@@ -92,7 +93,7 @@
             </div>
         </main>
     </div>
-    <script src="js/animations.js"></script>
+    <script src="{% static 'js/animations.js' %}"></script>
 </body>
 
 </html>

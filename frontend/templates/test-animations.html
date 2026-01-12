@@ -1,11 +1,12 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Animation Test | ARGUS</title>
-    <link rel="stylesheet" href="css/app.css">
-    <link rel="stylesheet" href="css/animations.css">
+    <link rel="stylesheet" href="{% static 'css/app.css' %}">
+    <link rel="stylesheet" href="{% static 'css/animations.css' %}">
     <style>
         body {
             padding: 40px;
@@ -91,7 +92,7 @@
         </table>
     </div>
     
-    <script src="js/animations.js"></script>
+    <script src="{% static 'js/animations.js' %}"></script>
     <script>
         console.log('Animation test page loaded');
         console.log('AnimationUtils available:', typeof window.AnimationUtils !== 'undefined');
