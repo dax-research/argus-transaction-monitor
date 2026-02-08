@@ -1,0 +1,20 @@
+# Django core
+Django>=4.2,<5.0
+
+# MySQL driver
+mysqlclient>=2.1.1
+
+# Django REST Framework (for APIs)
+djangorestframework>=3.15.0
+
+# ML / Data processing
+pandas>=2.1.0
+numpy>=1.26.0
+scikit-learn>=1.3.0
+joblib>=1.3.2
+
+# Optional: environment management
+python-dotenv>=1.0.0
+
+# Optional: for API testing / JSON handling
+requests>=2.32.0
