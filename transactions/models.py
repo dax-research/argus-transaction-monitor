@@ -18,13 +18,16 @@ class Transaction(models.Model):
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     currency = models.CharField(max_length=10, default='INR')
 
+    city = models.CharField(max_length=100, null=True, blank=True)
+    payment_type = models.CharField(max_length=50, null=True, blank=True)
+
     # ---- Transaction Status ----
     STATUS_CHOICES = [
-        ('INITIATED', 'Initiated'),
-        ('SUCCESS', 'Success'),
-        ('FAILED', 'Failed'),
+        ('INITIATED', 'Initiated'), 
+        ('SUCCESS', 'Success'), #Aproved
+        ('FAILED', 'Failed'), #technical failure
         ('OTP_REQUIRED', 'OTP Required'),
-        ('BLOCKED', 'Blocked'),
+        ('BLOCKED', 'Blocked'), #fraud
     ]
     status = models.CharField(
         max_length=20,
