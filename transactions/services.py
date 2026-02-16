@@ -8,14 +8,14 @@ ALLOWED_STATUS_TRANSITIONS ={
     "FAILED" : [],
     "BLOCKED" : [],
 }
-def create_transaction(user,amount,device_id,ip_address,channel,generated_txn_id):
+def create_transaction(user, amount, device_type, ip_address, channel, generated_txn_id):
     txn = Transaction.objects.create(
-        user = user,
-        amount = amount,
-        device_id =device_id,
-        ip_address = ip_address,
-        channel = channel,
-        txn_id = generated_txn_id
+        user=user,
+        amount=amount,
+        device_type=device_type,
+        ip_address=ip_address,
+        channel=channel,
+        txn_id=generated_txn_id
     )
     return txn
 

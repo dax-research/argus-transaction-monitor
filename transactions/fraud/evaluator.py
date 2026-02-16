@@ -22,7 +22,7 @@ RULES = [
 def evaluate_rules(txn):
     for rule in RULES:
         result = rule(txn)
-        print(rule.__name__, "→", result)
+        print(rule.__name__, "->", result)
         if result == "BLOCK":
             return "BLOCK"
 
