@@ -1,6 +1,12 @@
+import uuid
+
 from django.db import models
 from users.models import User
-# Create your models here.
+
+
+def generate_txn_id():
+    return f"TXN-{uuid.uuid4().hex[:12].upper()}"
+
 
 class Transaction(models.Model):
 
@@ -12,7 +18,7 @@ class Transaction(models.Model):
         )
 
     # ---- Transaction Identity ----
-    txn_id = models.CharField(max_length=100, unique=True)
+    txn_id = models.CharField(max_length=100, unique=True, default=generate_txn_id)
 
     # ---- Amount & Currency ----
     amount = models.DecimalField(max_digits=10, decimal_places=2)
@@ -52,7 +58,7 @@ class Transaction(models.Model):
     risk_score = models.FloatField(null=True, blank=True)
 
     # ---- Context / Signals ----
-    device_id = models.CharField(max_length=100, null=True, blank=True)
+    device_type = models.CharField(max_length=100, null=True, blank=True, help_text="e.g. Mobile, Laptop, Tablet")
     ip_address = models.GenericIPAddressField(null=True, blank=True)
     channel = models.CharField(
         max_length=50,

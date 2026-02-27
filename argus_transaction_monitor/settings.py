@@ -38,10 +38,12 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
-    # Argus apps
+    'rest_framework',
+
+    # Argus apps (fraud_engine before transactions so detector is ready when signals run)
     'users',
+    'fraud_engine.apps.FraudEngineConfig',
     'transactions',
-    'fraud_engine',
     'otp_service',
     'analyst_dashboard',
 ]

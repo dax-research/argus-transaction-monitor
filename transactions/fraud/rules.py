@@ -42,27 +42,28 @@ def failed_attempts_rule(txn):
 
 #4.Location Anomaly
 def location_anomaly(txn):
+    if not txn.city:
+        return 1
     last_txn = Transaction.objects.filter(
         user=txn.user,
-        ).exclude(id=txn.id).order_by("-created_at").first()
-    
-    if last_txn and last_txn.city !=txn.city:
+    ).exclude(pk=txn.pk).order_by("-created_at").first()
+    if not last_txn or not last_txn.city:
+        return 1
+    if last_txn.city != txn.city:
         return "BLOCK"
-    
     return 1
 
 #5.Device change
 def device_change_rule(txn):
-    known_devices=(
-        txn.__class__.objects.
-        filter(user=txn.user).
-        values_list("device_id",flat=True)
+    known_devices = (
+        Transaction.objects.filter(user=txn.user)
+        .exclude(pk=txn.pk)
+        .values_list("device_type", flat=True)
         .distinct()
     )
-
-    if txn.device_id not in known_devices:
+    known_devices = [d for d in known_devices if d]
+    if txn.device_type and txn.device_type not in known_devices:
         return "BLOCK"
-    
     return 1
 
 # #6.Merchant History
