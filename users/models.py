@@ -1,6 +1,5 @@
 from django.db import models
 
-# Create your models here.
 class User(models.Model):
     user_id = models.CharField(max_length=50, unique=True)
     phone = models.CharField(max_length=15)
@@ -10,4 +9,3 @@ class User(models.Model):
 
     def __str__(self):
         return self.user_id
-    
