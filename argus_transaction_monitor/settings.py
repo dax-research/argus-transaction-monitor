@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     'rest_framework',
+    'rest_framework.authtoken',
 
     # Argus apps (fraud_engine before transactions so detector is ready when signals run)
     'users',
@@ -47,6 +48,15 @@ INSTALLED_APPS = [
     'otp_service',
     'analyst_dashboard',
 ]
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework.authentication.TokenAuthentication',  # Token-based auth
+        'rest_framework.authentication.SessionAuthentication',  # Optional: admin sessions
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',  # Require authentication by default
+    ]
+}
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
