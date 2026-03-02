@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Arguspay — Secure Banking</title>
+  <meta name="description" content="ArgusPayy — Your secure digital banking portal powered by AI fraud protection." />
+  <link rel="stylesheet" href="styles/main.css" />
+</head>
+<body>
+  <div class="app-wrapper">
+    <div class="login-page">
+      <div class="card login-card fade-in">
+
+        <div class="login-header">
+          <div class="login-logo">💳</div>
+          <h1 class="login-title">ArgusPayy</h1>
+          <p class="login-subtitle">Secure digital banking powered by AI fraud detection</p>
+        </div>
+
+        <div id="alert-box" style="display:none;"></div>
+
+        <form id="login-form" autocomplete="off">
+          <div class="form-group">
+            <label class="form-label" for="username">User ID</label>
+            <input
+              id="username"
+              type="text"
+              class="form-control"
+              placeholder="Enter your User ID"
+              autocomplete="username"
+              required
+            />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="password">Password</label>
+            <input
+              id="password"
+              type="password"
+              class="form-control"
+              placeholder="Enter your password"
+              autocomplete="current-password"
+              required
+            />
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-full" id="login-btn">
+            Sign In
+          </button>
+        </form>
+
+        <div class="divider"></div>
+
+        <p class="text-center text-sm text-muted">
+          Protected by <strong style="color: var(--accent-blue-bright);">Argus</strong>
+          AI Fraud Detection Engine 🛡️
+        </p>
+
+      </div>
+    </div>
+  </div>
+
+  <script src="js/api.js"></script>
+  <script src="js/auth.js"></script>
+</body>
+</html>

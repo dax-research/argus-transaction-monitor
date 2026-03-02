@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Transaction History — ArgusPayy</title>
+    <meta name="description" content="View all your past transactions and their fraud analysis results." />
+    <link rel="stylesheet" href="styles/main.css" />
+</head>
+
+<body>
+    <div class="app-wrapper">
+
+        <!-- Navbar -->
+        <nav class="navbar">
+            <a href="dashboard.html" class="navbar-brand">
+                <div class="brand-icon">💳</div>
+                <span class="brand-name">ArgusPayy</span>
+            </a>
+            <div class="navbar-nav">
+                <a href="dashboard.html" class="nav-link">Dashboard</a>
+                <a href="history.html" class="nav-link active">History</a>
+                <button class="btn-nav-logout" id="logout-btn">Sign Out</button>
+            </div>
+        </nav>
+
+        <div class="container">
+            <div class="page-header fade-in">
+                <h1 class="page-title">Transaction History</h1>
+                <p class="page-subtitle">All your recent transactions with Argus AI analysis results</p>
+            </div>
+
+            <!-- Stats Row -->
+            <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 28px;"
+                class="fade-in" id="stats-row">
+                <div class="card card-sm" style="text-align:center;">
+                    <p class="meta-label">Total</p>
+                    <p style="font-size:28px; font-weight:800;" id="stat-total">—</p>
+                </div>
+                <div class="card card-sm" style="text-align:center;">
+                    <p class="meta-label" style="color:var(--accent-green);">Approved</p>
+                    <p style="font-size:28px; font-weight:800; color:var(--accent-green);" id="stat-success">—</p>
+                </div>
+                <div class="card card-sm" style="text-align:center;">
+                    <p class="meta-label" style="color:var(--accent-yellow);">Pending OTP</p>
+                    <p style="font-size:28px; font-weight:800; color:var(--accent-yellow);" id="stat-otp">—</p>
+                </div>
+                <div class="card card-sm" style="text-align:center;">
+                    <p class="meta-label" style="color:var(--accent-red);">Blocked</p>
+                    <p style="font-size:28px; font-weight:800; color:var(--accent-red);" id="stat-blocked">—</p>
+                </div>
+            </div>
+
+            <!-- Transactions Table -->
+            <div class="card fade-in">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+                    <h2 class="section-title" style="margin-bottom:0;">📋 All Transactions</h2>
+                    <button class="btn btn-secondary" id="clear-btn" style="padding: 8px 16px; font-size:13px;">
+                        🗑 Clear History
+                    </button>
+                </div>
+
+                <div id="history-content">
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📭</div>
+                        <p>No transactions yet.</p>
+                        <a href="dashboard.html" class="link mt-4" style="display:inline-block; margin-top:12px;">Send
+                            your first transaction →</a>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script src="js/history.js"></script>
+</body>
+
+</html>

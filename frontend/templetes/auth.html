@@ -1,0 +1,148 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ARGUS | Access</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="{% static 'css/login.css' %}">
+</head>
+
+<body class="auth-body">
+    <div class="auth-wrapper">
+        <div class="auth-panel auth-visual">
+            <div class="auth-visual-overlay"></div>
+            <div class="auth-visual-content">
+                <p class="eyebrow">ARGUS Platform</p>
+                <h1>Welcome</h1>
+                <p class="lede">
+                    Real-time fraud detection, AML compliance, and risk management.
+                    Protect every transaction with enterprise-grade security.
+                </p>
+                <a class="link-ghost" href="index.html">Back to Home →</a>
+            </div>
+        </div>
+
+        <div class="auth-panel auth-forms">
+            <!-- Error Messages -->
+            {% if messages %}
+            <div class="messages">
+                {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}">
+                    <i class="fa-solid fa-circle-exclamation"></i>
+                    {{ message }}
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <!-- Login Form -->
+            <form id="loginForm" class="auth-form" method="post" action="{% url 'login' %}">
+                {% csrf_token %}
+                <input type="hidden" name="role" id="selectedRole" value="fraud-analyst">
+
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" name="email" placeholder="you@company.com" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" name="password" placeholder="Password" required>
+                </div>
+
+                <div class="checkbox-row">
+                    <input type="checkbox" id="remember">
+                    <label for="remember">Remember me</label>
+                </div>
+
+                <button type="submit" class="btn-primary full">Log In</button>
+                <p class="helper">Forgot password? <a href="#">Reset</a></p>
+                <p class="helper">Don't have an account? <a href="#" onclick="showRegisterForm(); return false;">Register</a></p>
+            </form>
+
+            <!-- Register Form (Hidden by default) -->
+            <form id="registerForm" class="auth-form" style="display:none;" method="post" action="{% url 'signup' %}">
+                {% csrf_token %}
+                <input type="hidden" name="role" id="registerRole" value="fraud-analyst">
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>First Name</label>
+                        <input type="text" name="first_name" placeholder="Alex" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Last Name</label>
+                        <input type="text" name="last_name" placeholder="Morgan" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" name="email" placeholder="alex.morgan@company.com" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" name="password" placeholder="Create a strong password" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Confirm Password</label>
+                    <input type="password" name="confirm_password" placeholder="Re-enter password" required>
+                </div>
+
+                <div class="checkbox-row">
+                    <input type="checkbox" id="terms" required>
+                    <label for="terms">I accept the <a href="#">Terms of Use</a> & <a href="#">Privacy
+                            Policy</a></label>
+                </div>
+
+                <button type="submit" class="btn-primary full">Register Now</button>
+                <p class="helper">Already have an account? <a href="#" onclick="showLoginForm(); return false;">Log In</a></p>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Get role from Django context or URL parameter
+        const contextRole = '{{ role|default:"fraud-analyst" }}';
+        
+        function getUrlParameter(name) {
+            name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
+            var regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
+            var results = regex.exec(location.search);
+            return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
+        }
+
+        // Use context role first, then URL parameter, then default
+        const urlRole = getUrlParameter('role');
+        const finalRole = contextRole || urlRole || 'fraud-analyst';
+        
+        const selectedRoleInput = document.getElementById('selectedRole');
+        const registerRoleInput = document.getElementById('registerRole');
+        const loginForm = document.getElementById('loginForm');
+        const registerForm = document.getElementById('registerForm');
+
+        // Set role from context/URL parameter
+        selectedRoleInput.value = finalRole;
+        registerRoleInput.value = finalRole;
+
+        // Show/hide forms
+        function showRegisterForm() {
+            loginForm.style.display = 'none';
+            registerForm.style.display = 'block';
+        }
+
+        function showLoginForm() {
+            registerForm.style.display = 'none';
+            loginForm.style.display = 'block';
+        }
+    </script>
+</body>
+
+</html>

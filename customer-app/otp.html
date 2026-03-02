@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>OTP Verification — ArgusPayy</title>
+    <meta name="description" content="Verify your transaction with a one-time password." />
+    <link rel="stylesheet" href="styles/main.css" />
+</head>
+
+<body>
+    <div class="app-wrapper">
+
+        <!-- Navbar -->
+        <nav class="navbar">
+            <a href="dashboard.html" class="navbar-brand">
+                <div class="brand-icon">💳</div>
+                <span class="brand-name">ArgusPayy</span>
+            </a>
+            <div class="navbar-nav">
+                <a href="dashboard.html" class="nav-link">Dashboard</a>
+                <a href="history.html" class="nav-link">History</a>
+                <button class="btn-nav-logout" id="logout-btn">Sign Out</button>
+            </div>
+        </nav>
+
+        <div class="container">
+            <div class="page-header fade-in">
+                <h1 class="page-title">🔐 OTP Verification</h1>
+                <p class="page-subtitle">This transaction was flagged for additional verification</p>
+            </div>
+
+            <div style="max-width: 520px; margin: 0 auto;">
+
+                <!-- Transaction Info -->
+                <div class="card card-sm fade-in" id="txn-info" style="margin-bottom: 20px;">
+                    <div style="display:flex; align-items:center; gap:12px;">
+                        <span style="font-size:28px;">⚠️</span>
+                        <div>
+                            <p style="font-weight:600; margin-bottom:2px;">Transaction Under Review</p>
+                            <p class="text-sm text-muted" id="txn-id-display">TXN ID: —</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- OTP Display (demo) -->
+                <div class="otp-display fade-in" id="otp-demo-box">
+                    <p class="otp-label">🎭 Demo — Generated OTP (visible for testing)</p>
+                    <p class="otp-code" id="otp-demo-code">— — — — — —</p>
+                    <p class="text-sm text-muted" style="margin-top:8px;">OTP expires in <span id="timer">5:00</span>
+                    </p>
+                </div>
+
+                <!-- OTP Input Form -->
+                <div class="card fade-in" id="otp-card">
+                    <h2 class="section-title">Enter OTP</h2>
+
+                    <div id="otp-alert" style="display:none;"></div>
+
+                    <div id="otp-form-wrap">
+                        <div class="form-group">
+                            <label class="form-label" for="otp-input">6-Digit OTP</label>
+                            <div class="otp-input-row">
+                                <input id="otp-input" type="text" class="form-control" placeholder="● ● ● ● ● ●"
+                                    maxlength="6" inputmode="numeric" pattern="[0-9]{6}" autocomplete="one-time-code" />
+                            </div>
+                        </div>
+
+                        <button class="btn btn-primary btn-full" id="verify-btn">
+                            Verify OTP
+                        </button>
+                        <a href="dashboard.html" class="btn btn-secondary btn-full mt-4">← Cancel Transaction</a>
+                    </div>
+
+                    <!-- Result -->
+                    <div id="otp-result" style="display:none; margin-top:20px;"></div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script src="js/otp.js"></script>
+</body>
+
+</html>

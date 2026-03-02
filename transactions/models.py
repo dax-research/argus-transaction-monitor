@@ -21,7 +21,7 @@ class Transaction(models.Model):
     txn_id = models.CharField(max_length=100, unique=True, default=generate_txn_id)
 
     # ---- Amount & Currency ----
-    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    amount = models.DecimalField(max_digits=15, decimal_places=2)
     currency = models.CharField(max_length=10, default='INR')
 
     city = models.CharField(max_length=100, null=True, blank=True)

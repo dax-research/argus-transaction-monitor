@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Register — Argus Fraud Monitor</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" />
+    <link rel="stylesheet" href="/static/css/style.css" />
+    <style>
+        /* ── Page layout ── */
+        body {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 24px;
+        }
+
+        .auth-card {
+            width: 100%;
+            max-width: 480px;
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            backdrop-filter: blur(24px);
+            border-radius: 20px;
+            padding: 44px 40px 36px;
+            box-shadow: 0 24px 80px rgba(0, 0, 0, .45);
+            animation: slideUp .5s ease;
+        }
+
+        .auth-brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 32px;
+        }
+
+        .auth-brand-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
+            display: grid;
+            place-items: center;
+            font-size: 22px;
+        }
+
+        .auth-brand h1 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            letter-spacing: -.02em;
+            margin: 0;
+        }
+
+        .auth-brand span {
+            font-size: .75rem;
+            color: var(--text-muted);
+        }
+
+        .auth-title {
+            font-size: 1.6rem;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+
+        .auth-sub {
+            color: var(--text-muted);
+            font-size: .9rem;
+            margin-bottom: 28px;
+        }
+
+        /* ── Form ── */
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: .82rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: .05em;
+        }
+
+        .input-wrap {
+            position: relative;
+        }
+
+        .input-wrap input,
+        .input-wrap select {
+            width: 100%;
+            padding: 12px 16px;
+            background: rgba(255, 255, 255, .05);
+            border: 1px solid rgba(255, 255, 255, .1);
+            border-radius: 10px;
+            color: var(--text-primary);
+            font-size: .95rem;
+            font-family: inherit;
+            transition: border-color .2s, box-shadow .2s;
+            outline: none;
+            box-sizing: border-box;
+        }
+
+        .input-wrap select option {
+            background: #1a1a2e;
+        }
+
+        .input-wrap input:focus,
+        .input-wrap select:focus {
+            border-color: var(--accent-1);
+            box-shadow: 0 0 0 3px rgba(124, 92, 252, .2);
+        }
+
+        .input-wrap .pw-toggle {
+            position: absolute;
+            right: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 0;
+            font-size: 18px;
+        }
+
+        /* ── Role selector ── */
+        .role-selector {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .role-option {
+            display: none;
+        }
+
+        .role-card {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            padding: 14px;
+            border-radius: 10px;
+            border: 1.5px solid rgba(255, 255, 255, .1);
+            cursor: pointer;
+            transition: all .2s;
+            background: rgba(255, 255, 255, .03);
+        }
+
+        .role-option:checked+.role-card {
+            border-color: var(--accent-1);
+            background: rgba(124, 92, 252, .12);
+        }
+
+        .role-card-icon {
+            font-size: 1.4rem;
+        }
+
+        .role-card-name {
+            font-size: .88rem;
+            font-weight: 600;
+        }
+
+        .role-card-desc {
+            font-size: .73rem;
+            color: var(--text-muted);
+        }
+
+        /* ── Password strength ── */
+        .pw-strength {
+            margin-top: 6px;
+        }
+
+        .pw-strength-bar {
+            height: 4px;
+            border-radius: 2px;
+            background: rgba(255, 255, 255, .1);
+            overflow: hidden;
+        }
+
+        .pw-strength-fill {
+            height: 100%;
+            width: 0;
+            border-radius: 2px;
+            transition: width .3s, background .3s;
+        }
+
+        .pw-strength-label {
+            font-size: .72rem;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        /* ── Error/success alerts ── */
+        .alert {
+            padding: 12px 16px;
+            border-radius: 10px;
+            font-size: .88rem;
+            margin-bottom: 18px;
+            display: none;
+        }
+
+        .alert-error {
+            background: rgba(255, 71, 87, .15);
+            border: 1px solid rgba(255, 71, 87, .3);
+            color: #ff6b78;
+        }
+
+        .alert-success {
+            background: rgba(46, 213, 115, .1);
+            border: 1px solid rgba(46, 213, 115, .3);
+            color: #2ed573;
+        }
+
+        /* ── Submit button ── */
+        .btn-register {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
+            border: none;
+            border-radius: 10px;
+            color: #fff;
+            font-size: 1rem;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            transition: opacity .2s, transform .1s;
+            margin-top: 4px;
+        }
+
+        .btn-register:hover {
+            opacity: .9;
+        }
+
+        .btn-register:active {
+            transform: scale(.98);
+        }
+
+        .btn-register:disabled {
+            opacity: .6;
+            cursor: not-allowed;
+        }
+
+        /* ── Footer links ── */
+        .auth-footer {
+            text-align: center;
+            margin-top: 20px;
+            font-size: .87rem;
+            color: var(--text-muted);
+        }
+
+        .auth-footer a {
+            color: var(--accent-1);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .auth-footer a:hover {
+            text-decoration: underline;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(24px);
+            }
+
+            to {
+                opacity: 1;
+                transform: none;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="auth-card">
+
+        <!-- Brand -->
+        <div class="auth-brand">
+            <div class="auth-brand-icon">🛡️</div>
+            <div>
+                <h1>Argus</h1>
+                <span>Fraud Monitor</span>
+            </div>
+        </div>
+
+        <h2 class="auth-title">Create Account</h2>
+        <p class="auth-sub">Register as a Fraud Analyst or Auditor.</p>
+
+        <!-- Error / Success banners -->
+        <div id="alert-error" class="alert alert-error"></div>
+        <div id="alert-success" class="alert alert-success"></div>
+
+        <form id="register-form" novalidate>
+
+            <!-- Name + Email row -->
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="full-name">Full Name</label>
+                    <div class="input-wrap">
+                        <input id="full-name" type="text" placeholder="Jane Smith" autocomplete="name" required />
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="email">Work Email</label>
+                    <div class="input-wrap">
+                        <input id="email" type="email" placeholder="you@argus.dev" autocomplete="email" required />
+                    </div>
+                </div>
+            </div>
+
+            <!-- Role -->
+            <div class="form-group">
+                <label>Role</label>
+                <div class="role-selector">
+                    <label>
+                        <input class="role-option" type="radio" name="role" value="ANALYST" id="role-analyst" />
+                        <div class="role-card">
+                            <span class="role-card-icon">🔍</span>
+                            <span class="role-card-name">Fraud Analyst</span>
+                            <span class="role-card-desc">Full dashboard + investigation management</span>
+                        </div>
+                    </label>
+                    <label>
+                        <input class="role-option" type="radio" name="role" value="AUDITOR" id="role-auditor" checked />
+                        <div class="role-card">
+                            <span class="role-card-icon">👁</span>
+                            <span class="role-card-name">Auditor</span>
+                            <span class="role-card-desc">Read-only access to all logs</span>
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Password -->
+            <div class="form-group">
+                <label for="password">Password</label>
+                <div class="input-wrap">
+                    <input id="password" type="password" placeholder="Min 8 characters" autocomplete="new-password"
+                        required />
+                    <button type="button" class="pw-toggle" id="pw-toggle1" aria-label="Show password">👁</button>
+                </div>
+                <!-- strength meter -->
+                <div class="pw-strength">
+                    <div class="pw-strength-bar">
+                        <div class="pw-strength-fill" id="strength-fill"></div>
+                    </div>
+                    <div class="pw-strength-label" id="strength-label">—</div>
+                </div>
+            </div>
+
+            <!-- Confirm Password -->
+            <div class="form-group">
+                <label for="confirm-password">Confirm Password</label>
+                <div class="input-wrap">
+                    <input id="confirm-password" type="password" placeholder="Repeat your password"
+                        autocomplete="new-password" required />
+                    <button type="button" class="pw-toggle" id="pw-toggle2" aria-label="Show password">👁</button>
+                </div>
+            </div>
+
+            <button type="submit" class="btn-register" id="submit-btn">Create Account</button>
+        </form>
+
+        <div class="auth-footer">
+            Already have an account? <a href="/login/">Sign in →</a>
+        </div>
+    </div>
+
+    <script src="/static/js/auth.js"></script>
+    <script>
+        // Redirect if already logged in
+        if (ArgusAuth.getUser()) {
+            const u = ArgusAuth.getUser();
+            window.location.href = u.role === 'ANALYST' ? '/dashboard/analyst/' : '/dashboard/auditor/';
+        }
+
+        // ── Password visibility toggles ──────────────────────
+        function togglePw(inputId, btnId) {
+            const input = document.getElementById(inputId);
+            const btn = document.getElementById(btnId);
+            btn.addEventListener('click', () => {
+                const show = input.type === 'password';
+                input.type = show ? 'text' : 'password';
+                btn.textContent = show ? '🙈' : '👁';
+            });
+        }
+        togglePw('password', 'pw-toggle1');
+        togglePw('confirm-password', 'pw-toggle2');
+
+        // ── Password strength meter ───────────────────────────
+        const fill = document.getElementById('strength-fill');
+        const label = document.getElementById('strength-label');
+        document.getElementById('password').addEventListener('input', function () {
+            const v = this.value;
+            let score = 0;
+            if (v.length >= 8) score++;
+            if (/[A-Z]/.test(v)) score++;
+            if (/[0-9]/.test(v)) score++;
+            if (/[^A-Za-z0-9]/.test(v)) score++;
+            const levels = [
+                { w: '0%', color: 'transparent', text: '—' },
+                { w: '25%', color: '#ff4757', text: '😬 Very weak' },
+                { w: '50%', color: '#ffa502', text: '⚠️ Fair' },
+                { w: '75%', color: '#00d4aa', text: '👍 Good' },
+                { w: '100%', color: 'var(--success)', text: '🔒 Strong' },
+            ];
+            const l = levels[score] || levels[0];
+            fill.style.width = l.w;
+            fill.style.background = l.color;
+            label.textContent = l.text;
+        });
+
+        // ── Form submission ───────────────────────────────────
+        document.getElementById('register-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const errEl = document.getElementById('alert-error');
+            const okEl = document.getElementById('alert-success');
+            const btn = document.getElementById('submit-btn');
+            errEl.style.display = 'none';
+            okEl.style.display = 'none';
+
+            const fullName = document.getElementById('full-name').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+            const confirmPw = document.getElementById('confirm-password').value;
+            const role = document.querySelector('input[name="role"]:checked')?.value || 'AUDITOR';
+
+            // Basic client-side validation
+            if (!fullName || !email || !password || !confirmPw) {
+                errEl.textContent = 'Please fill in all fields.';
+                errEl.style.display = 'block';
+                return;
+            }
+            if (password !== confirmPw) {
+                errEl.textContent = 'Passwords do not match.';
+                errEl.style.display = 'block';
+                return;
+            }
+            if (password.length < 8) {
+                errEl.textContent = 'Password must be at least 8 characters.';
+                errEl.style.display = 'block';
+                return;
+            }
+
+            btn.disabled = true;
+            btn.textContent = 'Creating account…';
+
+            try {
+                const res = await fetch('/api/auth/register/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        full_name: fullName,
+                        email,
+                        password,
+                        confirm_password: confirmPw,
+                        role,
+                    }),
+                });
+
+                const data = await res.json().catch(() => ({}));
+
+                if (!res.ok) {
+                    // Flatten DRF validation errors
+                    let msg = 'Registration failed.';
+                    if (data) {
+                        const msgs = Object.entries(data)
+                            .flatMap(([k, v]) => (Array.isArray(v) ? v : [v]).map(m => `${k !== 'non_field_errors' ? k + ': ' : ''}${m}`));
+                        if (msgs.length) msg = msgs.join(' · ');
+                    }
+                    errEl.textContent = msg;
+                    errEl.style.display = 'block';
+                    return;
+                }
+
+                // Store tokens and redirect
+                localStorage.setItem('argus_access', data.access);
+                localStorage.setItem('argus_refresh', data.refresh);
+                localStorage.setItem('argus_user', JSON.stringify(data.user));
+
+                okEl.textContent = `✅ Welcome, ${data.user.full_name}! Redirecting…`;
+                okEl.style.display = 'block';
+
+                setTimeout(() => {
+                    window.location.href = data.user.role === 'ANALYST'
+                        ? '/dashboard/analyst/'
+                        : '/dashboard/auditor/';
+                }, 1200);
+
+            } catch (err) {
+                errEl.textContent = 'Network error. Is the server running?';
+                errEl.style.display = 'block';
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Create Account';
+            }
+        });
+    </script>
+</body>
+
+</html>

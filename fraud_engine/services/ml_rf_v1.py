@@ -173,40 +173,58 @@ class ArgusFraudDetector:
         rf, xgb, le = self._get_assets()
         now = pd.to_datetime(transaction_data.get('Timestamp', pd.Timestamp.now()))
 
+        # ── Fix 1: Normalize timezone ──────────────────────────────────────
+        # Always work in naive UTC to avoid tz-aware vs tz-naive comparison errors.
+        # DB timestamps come back as timezone-aware; strip the tz info before comparing.
+        if now.tzinfo is not None:
+            now = now.tz_convert("UTC").tz_localize(None)
+
         # Feature Engineering
         if user_history is None or user_history.empty:
             avg_amount_7d = 0
             failed_7d = 0
             txn_count_24h = 0
-            new_device_flag = 1
+            # ── Fix 2: New account ≠ attacker ─────────────────────────────
+            # A brand-new user with zero history should not be treated as a
+            # suspicious new-device attempt. Only flag New_Device=1 once we
+            # have history to compare against.
+            new_device_flag = 0
         else:
-            history_7d = user_history[
-                user_history['Timestamp'] >= (now - timedelta(days=7))
-            ]
+            # Normalize history timestamps to naive UTC as well
+            ts_col = user_history['Timestamp'].copy()
+            if hasattr(ts_col.dtype, 'tz') and ts_col.dtype.tz is not None:
+                ts_col = ts_col.dt.tz_convert("UTC").dt.tz_localize(None)
+            else:
+                ts_col = pd.to_datetime(ts_col, utc=False).dt.tz_localize(None)
 
-            history_24h = history_7d[
-                history_7d['Timestamp'] >= (now - timedelta(days=1))
-            ]
+            history_7d = user_history[ts_col >= (now - timedelta(days=7))]
+            history_24h = user_history[ts_col >= (now - timedelta(days=1))]
 
-            avg_amount_7d = history_7d['Transaction_Amount'].mean() if not history_7d.empty else 0
-            failed_7d = (history_7d['status'] == 'FAILED').sum() if 'status' in history_7d.columns else 0
+            avg_amount_7d = float(history_7d['Transaction_Amount'].mean()) if not history_7d.empty else 0
+            failed_7d = int((history_7d['status'] == 'FAILED').sum()) if 'status' in history_7d.columns else 0
             txn_count_24h = len(history_24h)
 
             if 'Device_Type' in user_history.columns:
-                known_devices = user_history['Device_Type'].unique()
+                known_devices = set(user_history['Device_Type'].dropna().unique())
                 new_device_flag = 1 if transaction_data['Device_Type'] not in known_devices else 0
             else:
-                new_device_flag = 1
+                new_device_flag = 0
 
+        # ── Fix 3: Safe device encoding ───────────────────────────────────
+        # Instead of silently falling back to 0 (which shares encoding with a
+        # real device class), use the midpoint of known classes so unknown
+        # devices don't skew in either direction.
         try:
-            device_enc = int(le.transform([str(transaction_data.get('Device_Type', '')).strip() or 'Unknown'])[0])
+            device_str = str(transaction_data.get('Device_Type', '')).strip() or 'Unknown'
+            device_enc = int(le.transform([device_str])[0])
         except (ValueError, TypeError):
-            # Unknown device type: use 0 so model isn't over-penalized (e.g. "Mobile"/"Laptop" not in training)
-            device_enc = 0
+            # Unknown device: use middle of the encoding range as a neutral fallback
+            n_classes = len(le.classes_) if hasattr(le, 'classes_') else 2
+            device_enc = n_classes // 2
 
         feature_dict = {
-            'Transaction_Amount': transaction_data.get('Transaction_Amount', 0),
-            'Account_Balance': transaction_data.get('Account_Balance', 0),
+            'Transaction_Amount': float(transaction_data.get('Transaction_Amount', 0)),
+            'Account_Balance': float(transaction_data.get('Account_Balance', 0)),
             'Daily_Transaction_Count': txn_count_24h,
             'Avg_Transaction_Amount_7d': avg_amount_7d,
             'Failed_Transaction_Count_7d': failed_7d,
@@ -220,7 +238,7 @@ class ArgusFraudDetector:
         rf_score = rf.predict_proba(X_pred)[0][1]
         xgb_score = xgb.predict_proba(X_pred)[0][1]
 
-        # Final fraud risk score: meta-model (Logistic Regression) if available, else fixed blend
+        # Final fraud risk score: meta-model (LR stacking) if available, else blend
         if self._meta_model is not None:
             risk_score = float(
                 self._meta_model.predict_proba([[rf_score, xgb_score]])[0][1]

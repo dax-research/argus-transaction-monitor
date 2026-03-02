@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Argus Analyst Dashboard</title>
+    <meta name="description" content="Fraud analyst dashboard for Argus Transaction Monitor." />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            --bg: #0d1117;
+            --surface: #161b22;
+            --surface2: #21262d;
+            --border: #30363d;
+            --text: #e6edf3;
+            --text-muted: #8b949e;
+            --accent: #3b82f6;
+            --green: #10b981;
+            --yellow: #f59e0b;
+            --red: #ef4444;
+            --radius: 10px;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        /* Login */
+        .login-wrap {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 24px;
+        }
+
+        .login-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 40px;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .login-card h1 {
+            font-size: 22px;
+            margin-bottom: 6px;
+        }
+
+        .login-card p {
+            color: var(--text-muted);
+            font-size: 14px;
+            margin-bottom: 28px;
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: .05em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+        }
+
+        .form-group input {
+            width: 100%;
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            color: var(--text);
+            border-radius: var(--radius);
+            padding: 12px 14px;
+            font-size: 15px;
+            outline: none;
+            transition: border-color .2s;
+        }
+
+        .form-group input:focus {
+            border-color: var(--accent);
+        }
+
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 14px;
+            background: var(--accent);
+            color: #fff;
+            border: none;
+            border-radius: var(--radius);
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: opacity .2s;
+        }
+
+        .btn:hover {
+            opacity: .85;
+        }
+
+        .alert {
+            padding: 12px 14px;
+            border-radius: var(--radius);
+            font-size: 14px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .alert-error {
+            background: rgba(239, 68, 68, .15);
+            border: 1px solid var(--red);
+            color: var(--red);
+        }
+
+        /* Dashboard */
+        .hidden {
+            display: none !important;
+        }
+
+        nav {
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            padding: 14px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        nav .brand {
+            font-size: 16px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        nav .brand span {
+            font-size: 20px;
+        }
+
+        nav .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        nav .nav-user {
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        nav .btn-logout {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: background .2s;
+            width: auto;
+        }
+
+        nav .btn-logout:hover {
+            background: var(--border);
+        }
+
+        .main {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 28px 24px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+            gap: 16px;
+            margin-bottom: 28px;
+        }
+
+        .stat-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 20px;
+            text-align: center;
+        }
+
+        .stat-card .val {
+            font-size: 32px;
+            font-weight: 700;
+        }
+
+        .stat-card .lbl {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 4px;
+            text-transform: uppercase;
+            letter-spacing: .05em;
+        }
+
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 24px;
+            margin-bottom: 24px;
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 18px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .card-header h2 {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .filters {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .filters select {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 13px;
+            cursor: pointer;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        th {
+            text-align: left;
+            padding: 10px 12px;
+            color: var(--text-muted);
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: .05em;
+            border-bottom: 1px solid var(--border);
+        }
+
+        td {
+            padding: 12px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        .badge {
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            display: inline-block;
+        }
+
+        .badge-success {
+            background: rgba(16, 185, 129, .15);
+            color: var(--green);
+        }
+
+        .badge-danger {
+            background: rgba(239, 68, 68, .15);
+            color: var(--red);
+        }
+
+        .badge-warning {
+            background: rgba(245, 158, 11, .15);
+            color: var(--yellow);
+        }
+
+        .badge-info {
+            background: rgba(59, 130, 246, .15);
+            color: var(--accent);
+        }
+
+        .risk-bar {
+            height: 6px;
+            border-radius: 3px;
+            background: var(--surface2);
+            width: 80px;
+            display: inline-block;
+            vertical-align: middle;
+            overflow: hidden;
+        }
+
+        .risk-bar-fill {
+            height: 100%;
+            border-radius: 3px;
+        }
+
+        .btn-flag {
+            background: rgba(239, 68, 68, .1);
+            border: 1px solid var(--red);
+            color: var(--red);
+            padding: 5px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+            transition: background .2s;
+            width: auto;
+        }
+
+        .btn-flag:hover {
+            background: rgba(239, 68, 68, .25);
+        }
+
+        .btn-flag:disabled {
+            opacity: .4;
+            cursor: default;
+        }
+
+        .chart-wrap {
+            height: 220px;
+        }
+
+        .empty {
+            text-align: center;
+            padding: 40px;
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        .pagination {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-top: 16px;
+            justify-content: flex-end;
+            font-size: 13px;
+        }
+
+        .pagination button {
+            background: var(--surface2);
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 6px 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            width: auto;
+        }
+
+        .pagination button:disabled {
+            opacity: .4;
+            cursor: default;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #065f46;
+            color: #fff;
+            padding: 12px 22px;
+            border-radius: 10px;
+            font-size: 14px;
+            z-index: 9999;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, .4);
+            animation: fadeIn .3s;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateX(-50%) translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- LOGIN SCREEN -->
+    <div class="login-wrap" id="login-screen">
+        <div class="login-card">
+            <h1>🛡️ Argus Analyst</h1>
+            <p>Staff-only fraud analysis dashboard</p>
+            <div id="login-alert" class="alert alert-error"></div>
+            <form id="login-form">
+                <div class="form-group">
+                    <label for="username">Username</label>
+                    <input id="username" type="text" placeholder="Staff username" autocomplete="username" required />
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input id="password" type="password" placeholder="Password" autocomplete="current-password"
+                        required />
+                </div>
+                <button type="submit" class="btn" id="login-btn">Sign In</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- DASHBOARD SCREEN -->
+    <div id="dashboard-screen" class="hidden">
+        <nav>
+            <div class="brand"><span>🛡️</span> Argus Analyst Dashboard</div>
+            <div class="nav-right">
+                <span class="nav-user" id="nav-user"></span>
+                <button class="btn-logout" id="logout-btn">Sign Out</button>
+            </div>
+        </nav>
+
+        <div class="main">
+            <!-- Stats -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="val" id="s-total">—</div>
+                    <div class="lbl">Total Transactions</div>
+                </div>
+                <div class="stat-card">
+                    <div class="val" style="color:var(--green)" id="s-success">—</div>
+                    <div class="lbl">Successful</div>
+                </div>
+                <div class="stat-card">
+                    <div class="val" style="color:var(--red)" id="s-blocked">—</div>
+                    <div class="lbl">Blocked</div>
+                </div>
+                <div class="stat-card">
+                    <div class="val" style="color:var(--yellow)" id="s-otp">—</div>
+                    <div class="lbl">OTP Pending</div>
+                </div>
+                <div class="stat-card">
+                    <div class="val" style="color:var(--red)" id="s-flagged">—</div>
+                    <div class="lbl">Analyst Flagged</div>
+                </div>
+            </div>
+
+            <!-- Chart -->
+            <div class="card">
+                <div class="card-header">
+                    <h2>📊 Risk Distribution</h2>
+                </div>
+                <div class="chart-wrap"><canvas id="risk-chart"></canvas></div>
+            </div>
+
+            <!-- Transactions Table -->
+            <div class="card">
+                <div class="card-header">
+                    <h2>📋 All Transactions</h2>
+                    <div class="filters">
+                        <select id="filter-status">
+                            <option value="">All Statuses</option>
+                            <option value="SUCCESS">Success</option>
+                            <option value="BLOCKED">Blocked</option>
+                            <option value="OTP_REQUIRED">OTP Required</option>
+                        </select>
+                        <select id="filter-decision">
+                            <option value="">All Decisions</option>
+                            <option value="ALLOW">Allow</option>
+                            <option value="CHALLENGE">Challenge</option>
+                            <option value="DENY">Deny</option>
+                        </select>
+                    </div>
+                </div>
+                <div id="table-wrap">
+                    <div class="empty">Loading…</div>
+                </div>
+                <div class="pagination">
+                    <button id="prev-btn" disabled>← Prev</button>
+                    <span id="page-label">Page 1</span>
+                    <button id="next-btn" disabled>Next →</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/analyst.js"></script>
+</body>
+
+</html>

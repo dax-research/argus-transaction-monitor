@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard — ArgusPayy</title>
+    <meta name="description" content="Send money securely. Every transaction is analyzed by Argus AI." />
+    <link rel="stylesheet" href="styles/main.css" />
+</head>
+
+<body>
+    <div class="app-wrapper">
+
+        <!-- Navbar -->
+        <nav class="navbar">
+            <a href="dashboard.html" class="navbar-brand">
+                <div class="brand-icon">💳</div>
+                <span class="brand-name">ArgusPayy</span>
+            </a>
+            <div class="navbar-nav">
+                <a href="dashboard.html" class="nav-link active" id="nav-dashboard">Dashboard</a>
+                <a href="history.html" class="nav-link" id="nav-history">History</a>
+                <button class="btn-nav-logout" id="logout-btn">Sign Out</button>
+            </div>
+        </nav>
+
+        <div class="container">
+
+            <!-- Page Header -->
+            <div class="page-header fade-in">
+                <h1 class="page-title" id="greeting">Good day 👋</h1>
+                <p class="page-subtitle">Every transaction is protected by Argus AI Fraud Detection</p>
+            </div>
+
+            <!-- Balance Card -->
+            <div class="balance-card fade-in">
+                <p class="balance-label">Total Balance</p>
+                <p class="balance-amount" id="balance-display">₹2,50,000.00</p>
+                <div class="balance-meta">
+                    <div class="balance-meta-item">
+                        <p class="balance-meta-label">Account</p>
+                        <p class="balance-meta-value" id="account-id">—</p>
+                    </div>
+                    <div class="balance-meta-item">
+                        <p class="balance-meta-label">Status</p>
+                        <p class="balance-meta-value" style="color: #6ee7b7;">● Active</p>
+                    </div>
+                    <div class="balance-meta-item">
+                        <p class="balance-meta-label">Fraud Shield</p>
+                        <p class="balance-meta-value" style="color: #60a5fa;">● On</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dashboard Grid -->
+            <div class="dashboard-grid">
+
+                <!-- Send Money Form -->
+                <div class="card fade-in">
+                    <h2 class="section-title">💸 Send Money</h2>
+
+                    <div id="send-alert" style="display:none;"></div>
+
+                    <div id="send-form-wrap">
+                        <form id="send-form">
+                            <div class="form-group">
+                                <label class="form-label" for="amount">Amount (₹)</label>
+                                <input id="amount" type="number" class="form-control" placeholder="e.g. 5000" min="1"
+                                    step="0.01" required />
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label" for="device-type">Device Type</label>
+                                <select id="device-type" class="form-control">
+                                    <option value="Mobile">Mobile</option>
+                                    <option value="Laptop">Laptop</option>
+                                    <option value="Tablet">Tablet</option>
+                                    <option value="Desktop">Desktop</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label" for="city">City</label>
+                                <select id="city" class="form-control">
+                                    <option value="Mumbai">Mumbai</option>
+                                    <option value="Delhi">Delhi</option>
+                                    <option value="Bangalore">Bangalore</option>
+                                    <option value="Chennai">Chennai</option>
+                                    <option value="Hyderabad">Hyderabad</option>
+                                    <option value="Pune">Pune</option>
+                                    <option value="Kolkata">Kolkata</option>
+                                    <option value="Ahmedabad">Ahmedabad</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label" for="payment-type">Payment Type</label>
+                                <select id="payment-type" class="form-control">
+                                    <option value="UPI">UPI</option>
+                                    <option value="NEFT">NEFT</option>
+                                    <option value="IMPS">IMPS</option>
+                                    <option value="RTGS">RTGS</option>
+                                    <option value="Card">Card</option>
+                                    <option value="Wallet">Wallet</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label class="form-label" for="balance">Your Account Balance (₹)</label>
+                                <input id="balance" type="number" class="form-control" placeholder="e.g. 250000" min="0"
+                                    step="0.01" required />
+                            </div>
+
+                            <button type="submit" class="btn btn-primary btn-full" id="send-btn">
+                                Send Transaction
+                            </button>
+                        </form>
+                    </div>
+
+                    <!-- Result area -->
+                    <div id="result-area" style="display:none; margin-top: 20px;"></div>
+                </div>
+
+                <!-- Recent Activity -->
+                <div class="card fade-in">
+                    <h2 class="section-title">📋 Recent Transactions</h2>
+                    <div id="recent-list">
+                        <div class="empty-state">
+                            <div class="empty-state-icon">🔍</div>
+                            <p>No transactions yet.<br>Send money to get started!</p>
+                        </div>
+                    </div>
+                    <div class="mt-6">
+                        <a href="history.html" class="btn btn-secondary btn-full">View Full History</a>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script src="js/dashboard.js"></script>
+</body>
+
+</html>

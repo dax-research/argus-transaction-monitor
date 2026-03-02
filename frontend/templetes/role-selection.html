@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Argus.ai - Choose Your Destiny</title>
+    <link rel="stylesheet" href="/static/css/role-selection.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+</head>
+
+<body>
+    <!-- Animated Background Elements -->
+    <div class="bg-animation">
+        <div class="floating-orb orb-1"></div>
+        <div class="floating-orb orb-2"></div>
+        <div class="floating-orb orb-3"></div>
+        <div class="floating-orb orb-4"></div>
+        <div class="floating-orb orb-5"></div>
+    </div>
+
+    <!-- Particle System -->
+    <div class="particles">
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+        <div class="particle"></div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="container">
+        <!-- Logo Header -->
+        <div class="logo-header">
+            <div class="logo-glow"></div>
+            <span class="logo-icon">🛡️</span>
+            <span class="logo-text">Argus.ai</span>
+        </div>
+        <div class="hero-section">
+            <h1 class="hero-title">
+                <span class="title-line">Choose Your</span>
+                <span class="title-line gradient-text">Digital Identity</span>
+            </h1>
+            <p class="hero-subtitle">Select your role and enter the future of fraud detection</p>
+        </div>
+
+        <div class="role-selection">
+            <div class="role-card fraud-analyst" onclick="selectRole('fraud-analyst')">
+                <div class="card-glow"></div>
+                <div class="card-border"></div>
+
+                <div class="icon-container">
+                    <div class="icon-orbit">
+                        <div class="orbit-ring ring-1"></div>
+                        <div class="orbit-ring ring-2"></div>
+                        <div class="orbit-ring ring-3"></div>
+                    </div>
+                    <div class="shield-icon">
+                        <div class="shield">
+                            <div class="shield-core"></div>
+                            <div class="magnifying-glass">
+                                <div class="glass-lens"></div>
+                                <div class="glass-handle"></div>
+                            </div>
+                        </div>
+                        <div class="warning-badge">
+                            <div class="badge-pulse"></div>
+                            <span>!</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-content">
+                    <h2 class="role-title">Fraud Analyst</h2>
+                    <p class="role-description">Advanced threat detection and analysis capabilities</p>
+                    <div class="role-features">
+                        <span class="feature">AI-Powered Detection</span>
+                        <span class="feature">Real-time Monitoring</span>
+                        <span class="feature">Advanced Analytics</span>
+                    </div>
+                </div>
+
+                <button class="role-button analyst-btn">
+                    <span class="btn-content">
+                        <span class="btn-text">ENTER AS ANALYST</span>
+                    </span>
+                    <div class="btn-ripple"></div>
+                </button>
+            </div>
+
+            <div class="role-card auditor" onclick="selectRole('auditor')">
+                <div class="card-glow"></div>
+                <div class="card-border"></div>
+
+                <div class="icon-container">
+                    <div class="icon-orbit">
+                        <div class="orbit-ring ring-1"></div>
+                        <div class="orbit-ring ring-2"></div>
+                        <div class="orbit-ring ring-3"></div>
+                    </div>
+                    <div class="shield-icon">
+                        <div class="shield">
+                            <div class="shield-core"></div>
+                            <div class="eye-icon">
+                                <div class="eye-outer"></div>
+                                <div class="eye-inner"></div>
+                                <div class="eye-pupil"></div>
+                            </div>
+                        </div>
+                        <div class="user-badge">
+                            <div class="badge-pulse"></div>
+                            <span>👁️</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card-content">
+                    <h2 class="role-title">Read-Only Auditor</h2>
+                    <p class="role-description">Comprehensive oversight and compliance monitoring</p>
+                    <div class="role-features">
+                        <span class="feature">Audit Trails</span>
+                        <span class="feature">Compliance Reports</span>
+                        <span class="feature">Data Insights</span>
+                    </div>
+                </div>
+
+                <button class="role-button auditor-btn">
+                    <span class="btn-content">
+                        <span class="btn-text">ENTER AS AUDITOR</span>
+                    </span>
+                    <div class="btn-ripple"></div>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-logo">
+                <div class="logo-glow"></div>
+                <span class="logo-icon">🛡️</span>
+                <span class="logo-text">Argus.ai</span>
+            </div>
+            <p class="footer-tagline">Securing the future, one transaction at a time</p>
+        </div>
+    </footer>
+
+    <script src="/static/js/role-selection.js"></script>
+</body>
+
+</html>

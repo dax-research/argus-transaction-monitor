@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ARGUS | Sign In</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            --bg: #0a0a1a;
+            --glass-bg: rgba(255, 255, 255, .04);
+            --glass-border: rgba(255, 255, 255, .1);
+            --accent-1: #7c5cfc;
+            --accent-2: #00d4aa;
+            --text-primary: #f0f0f8;
+            --text-muted: rgba(255, 255, 255, .45);
+            --success: #2ed573;
+            --danger: #ff4757;
+        }
+
+        html,
+        body {
+            height: 100%;
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: var(--text-primary);
+        }
+
+        /* ── Background orbs ── */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background:
+                radial-gradient(ellipse 60% 50% at 20% 30%, rgba(124, 92, 252, .18) 0%, transparent 70%),
+                radial-gradient(ellipse 50% 40% at 80% 70%, rgba(0, 212, 170, .12) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        /* ── Layout ── */
+        .auth-wrapper {
+            display: flex;
+            min-height: 100vh;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Left panel — visual */
+        .auth-visual {
+            flex: 1;
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            padding: 60px;
+            background: linear-gradient(135deg, rgba(124, 92, 252, .15), rgba(0, 212, 170, .08));
+            border-right: 1px solid var(--glass-border);
+        }
+
+        @media (min-width: 900px) {
+            .auth-visual {
+                display: flex;
+            }
+        }
+
+        .auth-visual .eyebrow {
+            font-size: .8rem;
+            font-weight: 600;
+            letter-spacing: .12em;
+            text-transform: uppercase;
+            color: var(--accent-1);
+            margin-bottom: 16px;
+        }
+
+        .auth-visual h1 {
+            font-size: 3rem;
+            font-weight: 900;
+            letter-spacing: -.04em;
+            line-height: 1.1;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, #fff, rgba(255, 255, 255, .6));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .auth-visual .lede {
+            font-size: 1.05rem;
+            color: var(--text-muted);
+            line-height: 1.7;
+            max-width: 420px;
+            margin-bottom: 36px;
+        }
+
+        .link-ghost {
+            color: var(--accent-2);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .link-ghost:hover {
+            text-decoration: underline;
+        }
+
+        /* Right panel — form */
+        .auth-forms {
+            flex: 0 0 440px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 60px 48px;
+        }
+
+        @media (max-width: 899px) {
+            .auth-forms {
+                flex: 1;
+                padding: 40px 24px;
+            }
+        }
+
+        /* ── Form ── */
+        .form-title {
+            font-size: 1.65rem;
+            font-weight: 800;
+            letter-spacing: -.03em;
+            margin-bottom: 6px;
+        }
+
+        .form-sub {
+            font-size: .9rem;
+            color: var(--text-muted);
+            margin-bottom: 32px;
+        }
+
+        .role-pill {
+            display: inline-block;
+            background: rgba(124, 92, 252, .18);
+            border: 1px solid rgba(124, 92, 252, .35);
+            color: var(--accent-1);
+            border-radius: 20px;
+            padding: 3px 12px;
+            font-size: .78rem;
+            font-weight: 600;
+            margin-left: 8px;
+            text-transform: uppercase;
+            letter-spacing: .06em;
+        }
+
+        .auth-form {
+            display: none;
+        }
+
+        .auth-form.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: .8rem;
+            font-weight: 600;
+            letter-spacing: .06em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-bottom: 7px;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 12px 16px;
+            background: rgba(255, 255, 255, .05);
+            border: 1px solid var(--glass-border);
+            border-radius: 10px;
+            color: var(--text-primary);
+            font-size: .95rem;
+            font-family: inherit;
+            outline: none;
+            transition: border-color .2s, box-shadow .2s;
+        }
+
+        .form-group input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .form-group input:focus {
+            border-color: var(--accent-1);
+            box-shadow: 0 0 0 3px rgba(124, 92, 252, .2);
+        }
+
+        .form-group select option {
+            background: #1a1a2e;
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+        }
+
+        /* Role cards */
+        .role-selector {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 18px;
+        }
+
+        .role-option {
+            display: none;
+        }
+
+        .role-card {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            padding: 14px;
+            border-radius: 10px;
+            border: 1.5px solid rgba(255, 255, 255, .1);
+            cursor: pointer;
+            transition: all .2s;
+            background: rgba(255, 255, 255, .03);
+        }
+
+        .role-option:checked+.role-card {
+            border-color: var(--accent-1);
+            background: rgba(124, 92, 252, .12);
+        }
+
+        .role-card-icon {
+            font-size: 1.4rem;
+        }
+
+        .role-card-name {
+            font-size: .88rem;
+            font-weight: 600;
+        }
+
+        .role-card-desc {
+            font-size: .73rem;
+            color: var(--text-muted);
+        }
+
+        /* PW strength */
+        .pw-strength {
+            margin-top: 6px;
+        }
+
+        .pw-strength-bar {
+            height: 4px;
+            border-radius: 2px;
+            background: rgba(255, 255, 255, .1);
+            overflow: hidden;
+        }
+
+        .pw-strength-fill {
+            height: 100%;
+            width: 0;
+            border-radius: 2px;
+            transition: width .3s, background .3s;
+        }
+
+        .pw-strength-label {
+            font-size: .72rem;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        /* Alert */
+        .alert {
+            padding: 12px 16px;
+            border-radius: 10px;
+            font-size: .88rem;
+            margin-bottom: 18px;
+            display: none;
+        }
+
+        .alert-error {
+            background: rgba(255, 71, 87, .15);
+            border: 1px solid rgba(255, 71, 87, .3);
+            color: #ff6b78;
+        }
+
+        .alert-success {
+            background: rgba(46, 213, 115, .1);
+            border: 1px solid rgba(46, 213, 115, .3);
+            color: #2ed573;
+        }
+
+        /* Buttons */
+        .btn-primary {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, var(--accent-1), #5a3fc0);
+            border: none;
+            border-radius: 10px;
+            color: #fff;
+            font-size: 1rem;
+            font-weight: 700;
+            font-family: inherit;
+            cursor: pointer;
+            transition: opacity .2s, transform .1s;
+            margin-top: 4px;
+        }
+
+        .btn-primary:hover {
+            opacity: .9;
+        }
+
+        .btn-primary:active {
+            transform: scale(.98);
+        }
+
+        .btn-primary:disabled {
+            opacity: .55;
+            cursor: not-allowed;
+        }
+
+        .checkbox-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 18px;
+            font-size: .88rem;
+        }
+
+        .checkbox-row input {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+
+        .helper {
+            font-size: .85rem;
+            color: var(--text-muted);
+            text-align: center;
+            margin-top: 16px;
+        }
+
+        .helper a {
+            color: var(--accent-1);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .helper a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="auth-wrapper">
+        <!-- Left visual panel -->
+        <div class="auth-visual">
+            <p class="eyebrow">ARGUS Platform</p>
+            <h1>Secure Access</h1>
+            <p class="lede">Real-time fraud detection, AML compliance, and risk management. Protect every transaction
+                with enterprise-grade security.</p>
+            <a class="link-ghost" href="/">← Back to Home</a>
+        </div>
+
+        <!-- Right form panel -->
+        <div class="auth-forms">
+
+            <!-- ── LOGIN FORM ── -->
+            <div id="loginSection" class="auth-form active">
+                <div class="form-title">Sign In <span class="role-pill" id="rolePill">Analyst</span></div>
+                <div class="form-sub">Enter your credentials to access the platform.</div>
+
+                <div id="login-error" class="alert alert-error"></div>
+
+                <form id="loginForm" novalidate>
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" id="login-email" placeholder="you@company.com" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Password</label>
+                        <input type="password" id="login-password" placeholder="Password" required>
+                    </div>
+                    <div class="checkbox-row">
+                        <input type="checkbox" id="remember">
+                        <label for="remember">Remember me</label>
+                    </div>
+                    <button type="submit" class="btn-primary" id="login-btn">Sign In</button>
+                </form>
+                <p class="helper">Don't have an account? <a href="#"
+                        onclick="showRegister(); return false;">Register</a></p>
+                <p class="helper"><a href="/">← Back to Home</a></p>
+            </div>
+
+            <!-- ── REGISTER FORM ── -->
+            <div id="registerSection" class="auth-form">
+                <div class="form-title">Create Account</div>
+                <div class="form-sub">Register as a Fraud Analyst or Auditor.</div>
+
+                <div id="reg-error" class="alert alert-error"></div>
+                <div id="reg-success" class="alert alert-success"></div>
+
+                <form id="registerForm" novalidate>
+                    <div class="form-group">
+                        <label>Full Name</label>
+                        <input type="text" id="reg-name" placeholder="Jane Smith" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Work Email</label>
+                        <input type="email" id="reg-email" placeholder="you@company.com" required>
+                    </div>
+
+                    <!-- Role -->
+                    <div class="form-group">
+                        <label>Role</label>
+                        <div class="role-selector">
+                            <label>
+                                <input class="role-option" type="radio" name="reg-role" value="ANALYST"
+                                    id="role-analyst">
+                                <div class="role-card">
+                                    <span class="role-card-icon">🔍</span>
+                                    <span class="role-card-name">Fraud Analyst</span>
+                                    <span class="role-card-desc">Full dashboard + investigations</span>
+                                </div>
+                            </label>
+                            <label>
+                                <input class="role-option" type="radio" name="reg-role" value="AUDITOR"
+                                    id="role-auditor" checked>
+                                <div class="role-card">
+                                    <span class="role-card-icon">👁</span>
+                                    <span class="role-card-name">Auditor</span>
+                                    <span class="role-card-desc">Read-only access to all logs</span>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Password</label>
+                        <input type="password" id="reg-password" placeholder="Min 8 characters" required>
+                        <div class="pw-strength">
+                            <div class="pw-strength-bar">
+                                <div class="pw-strength-fill" id="strength-fill"></div>
+                            </div>
+                            <div class="pw-strength-label" id="strength-label">—</div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Confirm Password</label>
+                        <input type="password" id="reg-confirm" placeholder="Repeat password" required>
+                    </div>
+
+                    <button type="submit" class="btn-primary" id="reg-btn">Create Account</button>
+                </form>
+                <p class="helper">Already have an account? <a href="#" onclick="showLogin(); return false;">Sign In</a>
+                </p>
+            </div>
+
+        </div><!-- /auth-forms -->
+    </div><!-- /auth-wrapper -->
+
+    <script>
+        // ── Redirect if already logged in ──────────────────────────────────
+        (function () {
+            try {
+                const user = JSON.parse(localStorage.getItem('argus_user'));
+                const token = localStorage.getItem('argus_access');
+                if (user && token) {
+                    window.location.href = user.role === 'ANALYST'
+                        ? '/dashboard/analyst/'
+                        : '/dashboard/auditor/';
+                }
+            } catch { /* ignore */ }
+        })();
+
+        // ── Role from URL param ────────────────────────────────────────────
+        const urlRole = new URLSearchParams(location.search).get('role') || 'fraud-analyst';
+        const rolePill = document.getElementById('rolePill');
+        if (rolePill) {
+            rolePill.textContent = urlRole === 'auditor' ? 'Auditor' : 'Analyst';
+        }
+        // Pre-check the register role radio if coming from role-selection
+        if (urlRole === 'auditor') {
+            document.getElementById('role-auditor').checked = true;
+        } else {
+            document.getElementById('role-analyst').checked = true;
+        }
+
+        // ── Tab toggle ─────────────────────────────────────────────────────
+        function showRegister() {
+            document.getElementById('loginSection').classList.remove('active');
+            document.getElementById('registerSection').classList.add('active');
+        }
+        function showLogin() {
+            document.getElementById('registerSection').classList.remove('active');
+            document.getElementById('loginSection').classList.add('active');
+        }
+
+        // ── Helper: show alert ─────────────────────────────────────────────
+        function showAlert(id, msg) {
+            const el = document.getElementById(id);
+            el.textContent = msg;
+            el.style.display = 'block';
+        }
+        function hideAlert(id) {
+            document.getElementById(id).style.display = 'none';
+        }
+
+        // ── LOGIN ──────────────────────────────────────────────────────────
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            hideAlert('login-error');
+
+            const email = document.getElementById('login-email').value.trim();
+            const password = document.getElementById('login-password').value;
+            const btn = document.getElementById('login-btn');
+
+            if (!email || !password) {
+                showAlert('login-error', 'Please fill in all fields.');
+                return;
+            }
+
+            btn.disabled = true;
+            btn.textContent = 'Signing In…';
+
+            try {
+                const res = await fetch('/api/auth/login/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password }),
+                });
+                const data = await res.json().catch(() => ({}));
+
+                if (!res.ok) {
+                    const msgs = Object.values(data).flat().join(' · ') || 'Login failed.';
+                    showAlert('login-error', msgs);
+                    return;
+                }
+
+                // Store JWT tokens
+                localStorage.setItem('argus_access', data.access);
+                localStorage.setItem('argus_refresh', data.refresh);
+                localStorage.setItem('argus_user', JSON.stringify(data.user));
+
+                // Redirect based on role
+                window.location.href = data.user.role === 'ANALYST'
+                    ? '/dashboard/analyst/'
+                    : '/dashboard/auditor/';
+
+            } catch {
+                showAlert('login-error', 'Network error — is the server running?');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Sign In';
+            }
+        });
+
+        // ── REGISTER ───────────────────────────────────────────────────────
+
+        // Password strength meter
+        document.getElementById('reg-password').addEventListener('input', function () {
+            const v = this.value;
+            let score = 0;
+            if (v.length >= 8) score++;
+            if (/[A-Z]/.test(v)) score++;
+            if (/[0-9]/.test(v)) score++;
+            if (/[^A-Za-z0-9]/.test(v)) score++;
+            const levels = [
+                { w: '0%', color: 'transparent', text: '—' },
+                { w: '25%', color: '#ff4757', text: '😬 Very weak' },
+                { w: '50%', color: '#ffa502', text: '⚠️ Fair' },
+                { w: '75%', color: '#00d4aa', text: '👍 Good' },
+                { w: '100%', color: '#2ed573', text: '🔒 Strong' },
+            ];
+            const l = levels[score] || levels[0];
+            document.getElementById('strength-fill').style.width = l.w;
+            document.getElementById('strength-fill').style.background = l.color;
+            document.getElementById('strength-label').textContent = l.text;
+        });
+
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            hideAlert('reg-error');
+            hideAlert('reg-success');
+
+            const full_name = document.getElementById('reg-name').value.trim();
+            const email = document.getElementById('reg-email').value.trim();
+            const password = document.getElementById('reg-password').value;
+            const confirm_password = document.getElementById('reg-confirm').value;
+            const role = document.querySelector('input[name="reg-role"]:checked')?.value || 'AUDITOR';
+            const btn = document.getElementById('reg-btn');
+
+            if (!full_name || !email || !password || !confirm_password) {
+                showAlert('reg-error', 'Please fill in all fields.');
+                return;
+            }
+            if (password !== confirm_password) {
+                showAlert('reg-error', 'Passwords do not match.');
+                return;
+            }
+            if (password.length < 8) {
+                showAlert('reg-error', 'Password must be at least 8 characters.');
+                return;
+            }
+
+            btn.disabled = true;
+            btn.textContent = 'Creating account…';
+
+            try {
+                const res = await fetch('/api/auth/register/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ full_name, email, password, confirm_password, role }),
+                });
+                const data = await res.json().catch(() => ({}));
+
+                if (!res.ok) {
+                    const msgs = Object.entries(data)
+                        .flatMap(([k, v]) =>
+                            (Array.isArray(v) ? v : [v]).map(m =>
+                                `${k !== 'non_field_errors' ? k + ': ' : ''}${m}`
+                            )
+                        ).join(' · ') || 'Registration failed.';
+                    showAlert('reg-error', msgs);
+                    return;
+                }
+
+                localStorage.setItem('argus_access', data.access);
+                localStorage.setItem('argus_refresh', data.refresh);
+                localStorage.setItem('argus_user', JSON.stringify(data.user));
+
+                showAlert('reg-success', `✅ Welcome, ${data.user.full_name}! Redirecting…`);
+                window.location.href = data.user.role === 'ANALYST'
+                    ? '/dashboard/analyst/'
+                    : '/dashboard/auditor/';
+
+            } catch {
+                showAlert('reg-error', 'Network error — is the server running?');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Create Account';
+            }
+        });
+    </script>
+</body>
+
+</html>
