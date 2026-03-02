@@ -4,3 +4,6 @@ __pycache__/
 
 # Ignore local database
 db.sqlite3
+
+ml_assests/
+*.joblib
