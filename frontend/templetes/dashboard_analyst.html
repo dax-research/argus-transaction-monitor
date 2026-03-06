@@ -114,6 +114,9 @@
                         <div class="section-title">All Transactions</div>
                     </div>
                     <div class="filter-bar">
+                        <input type="text" id="search-txn" placeholder="🔍 Search ID, amount, merchant…"
+                            onkeyup="filterTransactions()"
+                            style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:8px;color:#f0f0f8;padding:7px 12px;font-size:.85rem;font-family:inherit;outline:none;min-width:220px;">
                         <label>Status:</label>
                         <select id="filter-status" onchange="loadTransactions()">
                             <option value="">All</option>

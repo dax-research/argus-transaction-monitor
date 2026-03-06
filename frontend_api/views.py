@@ -2,47 +2,127 @@
 frontend_api/views.py
 All API endpoints needed by the frontend analyst dashboard.
 """
+import json
+import jwt as pyjwt
+from django.conf import settings
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import User as DjangoUser
 from django.utils import timezone
 from datetime import timedelta
-from rest_framework.decorators import api_view, permission_classes, authentication_classes
+from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated, AllowAny
-from rest_framework.authentication import BasicAuthentication
 from rest_framework.response import Response
 from rest_framework import status
-from rest_framework_simplejwt.tokens import RefreshToken
-from rest_framework_simplejwt.authentication import JWTAuthentication
-from rest_framework_simplejwt.exceptions import TokenError, InvalidToken
 from django.db.models import Count, Avg, Q
 
 from transactions.models import Transaction
 from frontend_api.models import Investigation
+from frontend_api.google_oauth import verify_google_id_token
 
 
-# ── Helpers ────────────────────────────────────────────────────────────────────
+# ── OAuth2 helpers ──────────────────────────────────────────────────────
+CLIENT_ID = "argus-frontend-client"
+DEFAULT_SCOPE = "read write"
 
-def _user_payload(user):
-    """Return the minimal user dict the frontend expects."""
+
+def _decode_jwt_payload(token: str) -> dict:
+    """Decode JWT payload WITHOUT verifying signature (already verified upstream)."""
+    try:
+        return pyjwt.decode(
+            token,
+            settings.SECRET_KEY,
+            algorithms=["HS256"],
+            options={"verify_exp": False},   # expiry already enforced by DOT
+        )
+    except Exception:
+        return {}
+
+
+def _user_payload_from_jwt(token: str) -> dict:
+    """Extract the {id, email, full_name, role} dict the frontend expects."""
+    claims = _decode_jwt_payload(token)
+    return {
+        "id":        claims.get("sub"),
+        "email":     claims.get("email", ""),
+        "full_name": claims.get("full_name", ""),
+        "role":      claims.get("role", "AUDITOR"),
+    }
+
+
+def _do_password_grant(request, username: str, password: str, scope: str = DEFAULT_SCOPE) -> dict:
+    """
+    Issue an OAuth2 JWT access + refresh token pair for the given user.
+
+    We generate the JWT directly using our custom generator and create the
+    DOT AccessToken / RefreshToken database records so that revocation and
+    introspection still work.
+
+    Returns: { "access_token": str, "refresh_token": str, "token_type": "Bearer",
+                "expires_in": int, "scope": str }
+    """
+    import secrets
+    from datetime import datetime, timedelta, timezone as dt_timezone
+    from django.utils import timezone
+
+    from oauth2_provider.models import Application, AccessToken, RefreshToken as OAuthRefreshToken
+    from oauth2_provider.settings import oauth2_settings
+    from argus_transaction_monitor.oauth_jwt import generate_jwt_token
+
+    # Verify the application exists
+    try:
+        app = Application.objects.get(client_id=CLIENT_ID)
+    except Application.DoesNotExist:
+        raise ValueError(
+            "OAuth2 application not configured. Run: python manage.py seed_oauth_app"
+        )
+
+    user = request.user  # already authenticated by the calling view
+
+    # Generate the JWT access token string
+    jwt_token = generate_jwt_token(request, app, scope)
+
+    # Create (or update) the DOT AccessToken record storing the JWT string as the token
+    expires = timezone.now() + timedelta(
+        seconds=oauth2_settings.ACCESS_TOKEN_EXPIRE_SECONDS
+    )
+    access_obj = AccessToken.objects.create(
+        user=user,
+        application=app,
+        token=jwt_token,
+        expires=expires,
+        scope=scope,
+    )
+
+    # Create a DOT RefreshToken (opaque, random — used for rotation & revocation)
+    refresh_token_str = secrets.token_urlsafe(40)
+    OAuthRefreshToken.objects.create(
+        user=user,
+        application=app,
+        token=refresh_token_str,
+        access_token=access_obj,
+    )
+
+    return {
+        "access_token":  jwt_token,
+        "refresh_token": refresh_token_str,
+        "token_type":    "Bearer",
+        "expires_in":    oauth2_settings.ACCESS_TOKEN_EXPIRE_SECONDS,
+        "scope":         scope,
+    }
+
+
+
+def _legacy_user_payload(user) -> dict:
+    """Fallback: build user payload from the Django user object directly."""
     role = "ANALYST" if user.is_staff else "AUDITOR"
     return {
-        "id": user.id,
-        "email": user.email,
+        "id":        user.id,
+        "email":     user.email,
         "full_name": f"{user.first_name} {user.last_name}".strip() or user.username,
-        "role": role,
+        "role":      role,
     }
 
-
-def _tokens_for(user):
-    refresh = RefreshToken.for_user(user)
-    return {
-        "access": str(refresh.access_token),
-        "refresh": str(refresh),
-        "user": _user_payload(user),
-    }
-
-
-# ── AUTH ENDPOINTS ─────────────────────────────────────────────────────────────
+# ── AUTH ENDPOINTS ──────────────────────────────────────────────────────
 
 @api_view(["POST"])
 @permission_classes([AllowAny])
@@ -51,27 +131,45 @@ def login_view(request):
     POST /api/auth/login/
     Body: { email, password }
     Returns: { access, refresh, user: { id, email, full_name, role } }
+
+    Internally runs the OAuth2 Resource Owner Password Credentials grant
+    against django-oauth-toolkit and returns a JWT access token.
     """
-    email = request.data.get("email", "").strip().lower()
+    email    = request.data.get("email", "").strip().lower()
     password = request.data.get("password", "")
 
     if not email or not password:
         return Response({"detail": "Email and password are required."}, status=400)
 
-    # Django auth uses username; look up by email
+    # Look up username from email (Django auth needs username)
     try:
         django_user = DjangoUser.objects.get(email__iexact=email)
         username = django_user.username
     except DjangoUser.DoesNotExist:
         return Response({"detail": "Invalid credentials."}, status=401)
 
+    if not django_user.is_active:
+        return Response({"detail": "Account is disabled."}, status=401)
+
+    # Attach user to request so the JWT generator can embed user claims
     user = authenticate(request, username=username, password=password)
     if user is None:
         return Response({"detail": "Invalid credentials."}, status=401)
-    if not user.is_active:
-        return Response({"detail": "Account is disabled."}, status=401)
+    request.user = user
 
-    return Response(_tokens_for(user))
+    try:
+        token_data = _do_password_grant(request, username=username, password=password)
+    except ValueError as exc:
+        return Response({"detail": str(exc)}, status=401)
+
+    access_token  = token_data["access_token"]
+    refresh_token = token_data.get("refresh_token", "")
+
+    return Response({
+        "access":  access_token,
+        "refresh": refresh_token,
+        "user":    _user_payload_from_jwt(access_token) or _legacy_user_payload(user),
+    })
 
 
 @api_view(["POST"])
@@ -81,12 +179,14 @@ def register_view(request):
     POST /api/auth/register/
     Body: { full_name, email, password, confirm_password, role }
     Returns: { access, refresh, user }
+
+    Creates the user then immediately issues OAuth2 tokens.
     """
     full_name = request.data.get("full_name", "").strip()
-    email = request.data.get("email", "").strip().lower()
-    password = request.data.get("password", "")
-    confirm = request.data.get("confirm_password", "")
-    role = request.data.get("role", "AUDITOR").upper()
+    email     = request.data.get("email", "").strip().lower()
+    password  = request.data.get("password", "")
+    confirm   = request.data.get("confirm_password", "")
+    role      = request.data.get("role", "AUDITOR").upper()
 
     errors = {}
     if not full_name:
@@ -107,10 +207,9 @@ def register_view(request):
     first_name, *rest = full_name.split(" ", 1)
     last_name = rest[0] if rest else ""
 
-    # Use email as username (unique)
+    # Derive unique username from email prefix
     username = email.split("@")[0]
-    base = username
-    idx = 1
+    base, idx = username, 1
     while DjangoUser.objects.filter(username=username).exists():
         username = f"{base}{idx}"
         idx += 1
@@ -124,20 +223,44 @@ def register_view(request):
         is_staff=(role == "ANALYST"),
     )
 
-    return Response(_tokens_for(user), status=201)
+    # Authenticate and issue OAuth2 tokens immediately
+    request.user = user
+    try:
+        token_data = _do_password_grant(request, username=username, password=password)
+    except ValueError as exc:
+        # User was created; return a minimal success without tokens
+        return Response(
+            {"detail": str(exc), "user": _legacy_user_payload(user)},
+            status=201,
+        )
+
+    access_token  = token_data["access_token"]
+    refresh_token = token_data.get("refresh_token", "")
+
+    return Response({
+        "access":  access_token,
+        "refresh": refresh_token,
+        "user":    _user_payload_from_jwt(access_token) or _legacy_user_payload(user),
+    }, status=201)
 
 
 @api_view(["POST"])
 @permission_classes([AllowAny])
 def logout_view(request):
-    """POST /api/auth/logout/ — blacklist the refresh token if provided."""
-    refresh_token = request.data.get("refresh")
+    """
+    POST /api/auth/logout/
+    Body: { refresh }  (the refresh token string)
+    Revokes the token via DOT's revocation endpoint.
+    """
+    refresh_token = request.data.get("refresh") or request.data.get("token")
     if refresh_token:
         try:
-            token = RefreshToken(refresh_token)
-            token.blacklist()
+            from oauth2_provider.models import RefreshToken as OAuthRefreshToken
+            rt = OAuthRefreshToken.objects.filter(token=refresh_token).first()
+            if rt:
+                rt.revoke()
         except Exception:
-            pass
+            pass  # best-effort revocation
     return Response({"detail": "Logged out."})
 
 
@@ -147,15 +270,108 @@ def refresh_view(request):
     """
     POST /api/auth/refresh/
     Body: { refresh }
-    Returns: { access }
+    Returns: { access }  — a new JWT access token.
     """
-    from rest_framework_simplejwt.serializers import TokenRefreshSerializer
-    serializer = TokenRefreshSerializer(data=request.data)
+    refresh_token = request.data.get("refresh", "")
+    if not refresh_token:
+        return Response({"detail": "refresh token is required."}, status=400)
+
+    from oauth2_provider.models import RefreshToken as OAuthRefreshToken
+    from oauth2_provider.settings import oauth2_settings
+
     try:
-        serializer.is_valid(raise_exception=True)
-    except (TokenError, InvalidToken) as e:
-        return Response({"detail": str(e)}, status=401)
-    return Response(serializer.validated_data)
+        rt = OAuthRefreshToken.objects.select_related("application", "user").get(
+            token=refresh_token, revoked__isnull=True
+        )
+    except OAuthRefreshToken.DoesNotExist:
+        return Response({"detail": "Invalid or expired refresh token."}, status=401)
+
+    # Generate a new access token using our custom JWT generator
+    from argus_transaction_monitor.oauth_jwt import generate_jwt_token
+    request.user = rt.user
+    new_access = generate_jwt_token(request, rt.application, rt.access_token.scope)
+
+    # Update the stored access token string
+    rt.access_token.token = new_access
+    rt.access_token.save(update_fields=["token"])
+
+    # Rotate refresh token if configured
+    if oauth2_settings.ROTATE_REFRESH_TOKEN:
+        import secrets
+        rt.token = secrets.token_urlsafe(40)
+        rt.save(update_fields=["token"])
+
+    return Response({"access": new_access, "refresh": rt.token})
+
+
+@api_view(["POST"])
+@permission_classes([AllowAny])
+def google_auth_view(request):
+    """
+    POST /api/auth/google/
+    Body: { credential: "<Google id_token JWT>" }
+    Returns: { access, refresh, user: { id, email, full_name, role } }
+
+    The frontend uses the Google Identity Services (GIS) popup which returns
+    a signed id_token. We verify it server-side, get-or-create a Django user,
+    and issue the same Argus JWT/refresh-token pair as the password grant.
+    """
+    credential = request.data.get("credential", "").strip()
+    if not credential:
+        return Response({"detail": "Google credential (id_token) is required."}, status=400)
+
+    # ── 1. Verify the id_token with Google ────────────────────────────────
+    try:
+        google_user = verify_google_id_token(credential)
+    except ValueError as exc:
+        return Response({"detail": f"Google token verification failed: {exc}"}, status=401)
+    except Exception as exc:
+        return Response({"detail": f"Unexpected error verifying Google token: {exc}"}, status=500)
+
+    email      = google_user["email"].lower()
+    given_name = google_user.get("given_name", "")
+    family_name = google_user.get("family_name", "")
+    full_name  = google_user.get("name", "").strip() or email.split("@")[0]
+
+    # ── 2. Get or create the Django user ──────────────────────────────────
+    user, created = DjangoUser.objects.get_or_create(
+        email__iexact=email,
+        defaults={"email": email},
+    )
+
+    if created:
+        # Derive a unique username from the email prefix
+        base_username = email.split("@")[0]
+        username = base_username
+        idx = 1
+        while DjangoUser.objects.filter(username=username).exists():
+            username = f"{base_username}{idx}"
+            idx += 1
+
+        user.username   = username
+        user.first_name = given_name or full_name.split(" ")[0]
+        user.last_name  = family_name or (" ".join(full_name.split(" ")[1:]) if " " in full_name else "")
+        user.is_staff   = False   # New Google users default to AUDITOR role
+        user.set_unusable_password()   # Prevent password-based login
+        user.save()
+    elif not user.is_active:
+        return Response({"detail": "Account is disabled."}, status=401)
+
+    # ── 3. Issue Argus JWT + refresh token (same as password grant) ───────
+    request.user = user
+    try:
+        token_data = _do_password_grant(request, username=user.username, password="")
+    except ValueError as exc:
+        return Response({"detail": str(exc)}, status=500)
+
+    access_token  = token_data["access_token"]
+    refresh_token = token_data.get("refresh_token", "")
+
+    return Response({
+        "access":  access_token,
+        "refresh": refresh_token,
+        "user":    _user_payload_from_jwt(access_token) or _legacy_user_payload(user),
+    })
 
 
 # ── DASHBOARD ENDPOINTS ────────────────────────────────────────────────────────

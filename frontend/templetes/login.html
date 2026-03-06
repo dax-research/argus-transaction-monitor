@@ -8,6 +8,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
         rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Identity Services -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
     <style>
         *,
         *::before,
@@ -360,6 +362,36 @@
         .helper a:hover {
             text-decoration: underline;
         }
+
+        /* ── Google Sign-In button area ── */
+        .google-signin-area {
+            margin-bottom: 20px;
+        }
+
+        .google-signin-area .g_id_signin {
+            width: 100% !important;
+        }
+
+        /* Divider */
+        .or-divider {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 18px 0;
+            color: var(--text-muted);
+            font-size: .8rem;
+            font-weight: 500;
+            letter-spacing: .06em;
+            text-transform: uppercase;
+        }
+
+        .or-divider::before,
+        .or-divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--glass-border);
+        }
     </style>
 </head>
 
@@ -383,6 +415,17 @@
                 <div class="form-sub">Enter your credentials to access the platform.</div>
 
                 <div id="login-error" class="alert alert-error"></div>
+
+                <!-- Google Sign-In (GIS rendered button) -->
+                <div class="google-signin-area">
+                    <div id="g_id_onload" data-client_id="{{ GOOGLE_OAUTH_CLIENT_ID }}"
+                        data-callback="handleGoogleResponse" data-auto_prompt="false">
+                    </div>
+                    <div class="g_id_signin" data-type="standard" data-theme="filled_black" data-size="large"
+                        data-text="signin_with" data-shape="rectangular" data-logo_alignment="left" data-width="344">
+                    </div>
+                </div>
+                <div class="or-divider">or</div>
 
                 <form id="loginForm" novalidate>
                     <div class="form-group">
@@ -411,6 +454,14 @@
 
                 <div id="reg-error" class="alert alert-error"></div>
                 <div id="reg-success" class="alert alert-success"></div>
+
+                <!-- Google Sign-Up -->
+                <div class="google-signin-area">
+                    <div class="g_id_signin" data-type="standard" data-theme="filled_black" data-size="large"
+                        data-text="signup_with" data-shape="rectangular" data-logo_alignment="left" data-width="344">
+                    </div>
+                </div>
+                <div class="or-divider">or</div>
 
                 <form id="registerForm" novalidate>
                     <div class="form-group">
@@ -653,6 +704,46 @@
                 btn.textContent = 'Create Account';
             }
         });
+        // ── Google OAuth callback ───────────────────────────────────────────
+        async function handleGoogleResponse(googleResponse) {
+            // googleResponse.credential is the signed id_token JWT from GIS
+            const errEl = document.getElementById('login-error');
+            errEl.style.display = 'none';
+
+            try {
+                const res = await fetch('/api/auth/google/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ credential: googleResponse.credential }),
+                });
+                const data = await res.json().catch(() => ({}));
+
+                if (!res.ok) {
+                    errEl.textContent = data.detail || 'Google sign-in failed. Please try again.';
+                    errEl.style.display = 'block';
+                    // also make login section visible if we're on register section
+                    document.getElementById('loginSection').classList.add('active');
+                    document.getElementById('registerSection').classList.remove('active');
+                    return;
+                }
+
+                // Store session — same keys as email/password login
+                localStorage.setItem('argus_access', data.access);
+                localStorage.setItem('argus_refresh', data.refresh);
+                localStorage.setItem('argus_user', JSON.stringify(data.user));
+
+                // Redirect based on role
+                window.location.href = data.user.role === 'ANALYST'
+                    ? '/dashboard/analyst/'
+                    : '/dashboard/auditor/';
+
+            } catch {
+                errEl.textContent = 'Network error during Google sign-in.';
+                errEl.style.display = 'block';
+                document.getElementById('loginSection').classList.add('active');
+                document.getElementById('registerSection').classList.remove('active');
+            }
+        }
     </script>
 </body>
 

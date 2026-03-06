@@ -7,3 +7,6 @@ db.sqlite3
 
 ml_assests/
 *.joblib
+
+# Environment secrets — never commit this!
+.env

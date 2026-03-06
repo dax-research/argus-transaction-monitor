@@ -55,21 +55,46 @@ const ArgusAPI = (() => {
 
     // ── Auth ───────────────────────────────────────────────────────────────
 
+    const OAUTH_CLIENT_ID = 'argus-frontend-client';
+
+    /** Decode a JWT payload WITHOUT verification (signature is checked server-side). */
+    function _decodeJwtPayload(token) {
+        try {
+            const base64Url = token.split('.')[1];
+            const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+            return JSON.parse(atob(base64));
+        } catch {
+            return {};
+        }
+    }
+
     async function login(email, password) {
+        // OAuth2 Resource Owner Password Credentials grant
+        const body = new URLSearchParams({
+            grant_type: 'password',
+            username: email,       // DOT uses 'username' field; our validator maps email→username
+            password: password,
+            client_id: OAUTH_CLIENT_ID,
+            scope: 'read write',
+        });
+
         const res = await fetch('/api/auth/login/', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email, password }),
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body,
         });
+
         if (!res.ok) {
             let errMsg = 'Login failed.';
             try {
                 const data = await res.json();
                 const msgs = Object.values(data).flat();
-                if (msgs.length) errMsg = msgs.join(' · ');
+                if (msgs.length) errMsg = msgs.join(' \u00b7 ');
             } catch { /* ignore */ }
             throw new Error(errMsg);
         }
+
+        // Server returns { access, refresh, user } — same shape as before
         return res.json();
     }
 

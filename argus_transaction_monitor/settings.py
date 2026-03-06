@@ -11,6 +11,11 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
 from pathlib import Path
+import os
+from dotenv import load_dotenv
+
+# Load environment variables from .env file (if present)
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -40,8 +45,7 @@ INSTALLED_APPS = [
 
     'rest_framework',
     'rest_framework.authtoken',
-    'rest_framework_simplejwt',
-    'rest_framework_simplejwt.token_blacklist',
+    'oauth2_provider',           # OAuth2 Authorization Server (replaces simplejwt)
 
     # Argus apps (fraud_engine before transactions so detector is ready when signals run)
     'users',
@@ -53,8 +57,8 @@ INSTALLED_APPS = [
 ]
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework_simplejwt.authentication.JWTAuthentication',   # JWT for frontend
-        'rest_framework.authentication.TokenAuthentication',           # Token for customer-app
+        'oauth2_provider.contrib.rest_framework.OAuth2Authentication',  # OAuth2/JWT for frontend
+        'rest_framework.authentication.TokenAuthentication',            # Token for customer-app
         # Note: SessionAuthentication removed — it forces CSRF on all API views,
         # which breaks JWT/Token-based frontends that don't send CSRF cookies.
     ],
@@ -63,12 +67,25 @@ REST_FRAMEWORK = {
     ]
 }
 
-from datetime import timedelta
-SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME':  timedelta(hours=8),
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
-    'ROTATE_REFRESH_TOKENS':  True,
-    'BLACKLIST_AFTER_ROTATION': True,
+# ── OAuth2 / JWT configuration ─────────────────────────────────────────────
+OAUTH2_PROVIDER = {
+    # Issue signed JWTs (not opaque tokens)
+    'ACCESS_TOKEN_GENERATOR':          'argus_transaction_monitor.oauth_jwt.generate_jwt_token',
+    'REFRESH_TOKEN_GENERATOR':         'oauth2_provider.generators.generate_client_id',
+
+    'ACCESS_TOKEN_EXPIRE_SECONDS':     8 * 60 * 60,   # 8 hours
+    'REFRESH_TOKEN_EXPIRE_SECONDS':    7 * 24 * 60 * 60,  # 7 days
+    'ROTATE_REFRESH_TOKEN':            True,
+
+    'SCOPES': {
+        'read':    'Read access',
+        'write':   'Write access',
+        'analyst': 'Analyst role',
+        'auditor': 'Auditor role',
+    },
+    # Allow the ROPC (password) grant
+    'ALLOWED_REDIRECT_URI_SCHEMES': ['https', 'http'],
+    'OAUTH2_VALIDATOR_CLASS': 'argus_transaction_monitor.oauth_validator.ArgusOAuth2Validator',
 }
 
 MIDDLEWARE = [
@@ -81,6 +98,8 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+SECURE_CROSS_ORIGIN_OPENER_POLICY = 'same-origin-allow-popups'
 
 # CORS — allow the local customer-app (opened as file:// or localhost) to reach the API
 CORS_ALLOWED_ORIGINS = [
@@ -160,3 +179,11 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = [
     BASE_DIR / 'frontend' / 'static',
 ]
+
+# ── Google OAuth ──────────────────────────────────────────────────────────────
+# Reads GOOGLE_CLIENT_ID or GOOGLE_OAUTH_CLIENT_ID from .env — either name works.
+# The GIS popup flow only needs the Client ID (no Client Secret).
+GOOGLE_OAUTH_CLIENT_ID = (
+    os.environ.get('GOOGLE_CLIENT_ID') or
+    os.environ.get('GOOGLE_OAUTH_CLIENT_ID', '')
+)

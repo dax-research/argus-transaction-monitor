@@ -33,14 +33,21 @@ const ArgusAuth = (() => {
         const refresh = getRefresh();
         if (!refresh) return false;
         try {
+            const body = new URLSearchParams({
+                grant_type: 'refresh_token',
+                refresh_token: refresh,
+                client_id: 'argus-frontend-client',
+            });
             const res = await fetch(`${BASE}/api/auth/refresh/`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ refresh }),
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body,
             });
             if (!res.ok) return false;
             const data = await res.json();
-            localStorage.setItem('argus_access', data.access);
+            // Server returns { access, refresh } — update both tokens
+            if (data.access) localStorage.setItem('argus_access', data.access);
+            if (data.refresh) localStorage.setItem('argus_refresh', data.refresh);
             return true;
         } catch {
             return false;

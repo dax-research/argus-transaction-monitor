@@ -147,6 +147,7 @@ async function loadTransactions() {
     try {
         const data = await ArgusAPI.getTransactions(sF, rF);
         const rows = data.results || data;
+        window._allTxnRows = rows;     // cache for client-side search
         const tbl = buildTxnTable(rows);
         if (wrap) { wrap.innerHTML = ''; wrap.appendChild(tbl); }
         if (ow) {
@@ -157,6 +158,25 @@ async function loadTransactions() {
         const html = `<div class="empty-state"><p style="color:#ff6b78;">⚠️ ${e.message}</p></div>`;
         if (wrap) wrap.innerHTML = html; if (ow) ow.innerHTML = html;
     }
+}
+
+// Client-side search — filters _allTxnRows without an API call
+function filterTransactions() {
+    const query = (document.getElementById('search-txn')?.value || '').toLowerCase().trim();
+    const wrap = document.getElementById('txn-table-wrap');
+    if (!wrap) return;
+    const rows = window._allTxnRows || [];
+    const filtered = query
+        ? rows.filter(r =>
+            (r.id || '').toLowerCase().includes(query) ||
+            String(r.amount || '').includes(query) ||
+            (r.merchant_name || '').toLowerCase().includes(query) ||
+            (r.merchant_category || '').toLowerCase().includes(query) ||
+            (r.status || '').toLowerCase().includes(query)
+        )
+        : rows;
+    wrap.innerHTML = '';
+    wrap.appendChild(buildTxnTable(filtered));
 }
 
 function buildTxnTable(rows) {

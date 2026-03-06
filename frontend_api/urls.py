@@ -7,6 +7,7 @@ urlpatterns = [
     path("api/auth/register/", views.register_view, name="auth-register"),
     path("api/auth/logout/",   views.logout_view,   name="auth-logout"),
     path("api/auth/refresh/",  views.refresh_view,  name="auth-refresh"),
+    path("api/auth/google/",   views.google_auth_view, name="auth-google"),  # Google OAuth
 
     # Dashboard
     path("api/dashboard/stats/",                             views.stats_view,               name="dash-stats"),

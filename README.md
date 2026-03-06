@@ -303,6 +303,17 @@ To retrain: `python retrain_models.py` (requires `Fraud_dataset.csv` in project 
 | `failure_reason` | CharField | Why it was blocked |
 | `created_at` | DateTimeField | Auto-generated |
 
+## Planned Security Enhancements
+
+To ensure the platform is production-ready, the following security measures will be implemented in the future:
+
+1. **Production Django Settings**: Setting `DEBUG = False`, enforcing secure cookies (`SESSION_COOKIE_SECURE = True`, `CSRF_COOKIE_SECURE = True`), and enabling Strict Transport Security (HSTS).
+2. **API Rate Limiting**: Adding DRF throttling to critical endpoints (like login and OTP verification) to prevent brute-force attacks.
+3. **Database Migration**: Switching from SQLite to a robust relational database like PostgreSQL or MySQL for better concurrency and scale.
+4. **Role-Based Access Control (RBAC) & Audit Logging**: Enforcing strict boundaries between Analyst and Auditor actions and maintaining an immutable `AuditLog` for staff activities.
+5. **Multi-Factor Authentication (MFA) for Staff**: Requiring Analysts and Auditors to use authenticator apps or email OTPs when signing into the dashboard.
+6. **Content Security Policy (CSP)**: Adding CSP headers to prevent Cross-Site Scripting (XSS) attacks on the frontend.
+
 ---
 
 ## License
