@@ -27,8 +27,9 @@
 - **ML ensemble model** — Random Forest + XGBoost stacked with a Meta Logistic Regression
 - **OTP challenge** for medium-risk transactions (30%–70% risk score)
 - **Customer App** — login, send money, view transaction history and balance
-- **Analyst Dashboard** — KPI cards, charts, transaction table, investigation case management, audit log
-- **JWT authentication** for the analyst dashboard
+- **Analyst & Auditor Dashboards** — KPI cards, charts, transaction table, investigation case management, audit log
+- **Staff roles** — Analysts (full investigation powers) vs Auditors (read-only, can escalate suspicious transactions)
+- **OAuth2 + JWT authentication** for the staff dashboards (email/password + Google Sign-In; auditors can self-register, analysts are admin-provisioned)
 - **Token authentication** for the customer app API
 
 ---
@@ -67,7 +68,7 @@ Django REST API (port 8001)  ◄──── Analyst Dashboard (/dashboard/analy
 |---|---|
 | Backend | Python 3.x, Django 6.x, Django REST Framework |
 | ML | scikit-learn, XGBoost, joblib, pandas, numpy |
-| Auth (analyst) | djangorestframework-simplejwt (JWT) |
+| Auth (staff dashboards) | django-oauth-toolkit issuing signed JWT access tokens |
 | Auth (customer) | DRF Token authentication |
 | Database | SQLite (dev) / MySQL (prod) |
 | Frontend — Customer | Plain HTML + CSS + JS |
@@ -208,6 +209,18 @@ Open: **http://localhost:8001/login/**
 
 ---
 
+## Staff Roles & Workflow
+
+- **Analyst** — full access to dashboards, can update investigations, change case status, and manually flag transactions.
+- **Auditor** — read-only access to dashboards and audit logs. Auditors can:
+  - **Self-register** via `/api/auth/register/` (email/password or Google Sign-In) — they always become `AUDITOR` users.
+  - **Report suspicious transactions** from the Auditor Transactions tab using the 🚩 Report button. This calls the flag API with a note describing why the transaction looks fraudulent.
+- **Analyst notification flow**:
+  - Each auditor report creates or updates an `Investigation` row tagged with `AUDITOR_FLAGGED: <note>`.
+  - On the Analyst dashboard → **Investigation Cases**, analysts see a **Notifications** column; cases with auditor reports show an **“Auditor report”** badge and the details appear in the Notes field/modal.
+
+---
+
 ## API Reference
 
 ### Customer App Endpoints
@@ -224,8 +237,9 @@ Open: **http://localhost:8001/login/**
 
 | Method | Endpoint | Description |
 |---|---|---|
-| POST | `/api/auth/login/` | Analyst login → JWT tokens |
-| POST | `/api/auth/register/` | Register analyst / auditor |
+| POST | `/api/auth/login/` | Staff login (analyst / auditor) → OAuth2 JWT tokens |
+| POST | `/api/auth/register/` | Self-service **auditor** signup; admins can also provision analysts |
+| POST | `/api/auth/google/` | Google Sign-In / signup → creates or logs in **auditor** accounts |
 | POST | `/api/auth/refresh/` | Refresh access token |
 | POST | `/api/auth/logout/` | Blacklist refresh token |
 | GET | `/api/dashboard/stats/` | KPI metrics + chart data |
@@ -233,6 +247,7 @@ Open: **http://localhost:8001/login/**
 | GET | `/api/dashboard/investigations/` | Blocked transactions as cases |
 | PATCH | `/api/dashboard/investigations/<id>/` | Update case status |
 | GET | `/api/dashboard/audit-log/` | Recent transaction audit trail |
+| POST | `/api/dashboard/transactions/<txn_id>/flag/` | Manually flag a transaction for investigation; body may include `{ "note": "auditor/analyst comment" }` and is recorded on the Investigation |
 
 ---
 

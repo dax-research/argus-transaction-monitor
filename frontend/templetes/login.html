@@ -550,7 +550,7 @@
             <!-- ── LOGIN FORM ── -->
             <div id="loginSection" class="auth-form active">
                 <div class="form-title">Sign In <span class="role-pill" id="rolePill">Analyst</span></div>
-                <div class="form-sub">Enter your credentials to access the platform.</div>
+                <div class="form-sub">Enter your administrator-issued credentials to access the platform.</div>
 
                 <div id="login-error" class="alert alert-error"></div>
 
@@ -581,19 +581,19 @@
                     <button type="submit" class="btn-primary" id="login-btn">Sign In</button>
                 </form>
                 <p class="helper">Don't have an account? <a href="#"
-                        onclick="showRegister(); return false;">Register</a></p>
+                        onclick="showRegister(); return false;">Register as Auditor</a></p>
                 <p class="helper"><a href="/">← Back to Home</a></p>
             </div>
 
-            <!-- ── REGISTER FORM ── -->
+            <!-- ── REGISTER FORM (Auditor self-registration only) ── -->
             <div id="registerSection" class="auth-form">
-                <div class="form-title">Create Account</div>
-                <div class="form-sub">Register as a Fraud Analyst or Auditor.</div>
+                <div class="form-title">Create Auditor Account</div>
+                <div class="form-sub">Register as an Auditor. Fraud Analyst accounts are created by an administrator.</div>
 
                 <div id="reg-error" class="alert alert-error"></div>
                 <div id="reg-success" class="alert alert-success"></div>
 
-                <!-- Google Sign-Up -->
+                <!-- Google Sign-Up (Auditor only) -->
                 <div class="google-signin-area">
                     <div class="g_id_signin" data-type="standard" data-theme="filled_black" data-size="large"
                         data-text="signup_with" data-shape="rectangular" data-logo_alignment="left" data-width="344">
@@ -609,31 +609,6 @@
                     <div class="form-group">
                         <label>Work Email</label>
                         <input type="email" id="reg-email" placeholder="you@company.com" required>
-                    </div>
-
-                    <!-- Role -->
-                    <div class="form-group">
-                        <label>Role</label>
-                        <div class="role-selector">
-                            <label>
-                                <input class="role-option" type="radio" name="reg-role" value="ANALYST"
-                                    id="role-analyst">
-                                <div class="role-card">
-                                    <span class="role-card-icon">🔍</span>
-                                    <span class="role-card-name">Fraud Analyst</span>
-                                    <span class="role-card-desc">Full dashboard + investigations</span>
-                                </div>
-                            </label>
-                            <label>
-                                <input class="role-option" type="radio" name="reg-role" value="AUDITOR"
-                                    id="role-auditor" checked>
-                                <div class="role-card">
-                                    <span class="role-card-icon">👁</span>
-                                    <span class="role-card-name">Auditor</span>
-                                    <span class="role-card-desc">Read-only access to all logs</span>
-                                </div>
-                            </label>
-                        </div>
                     </div>
 
                     <div class="form-group">
@@ -697,20 +672,14 @@
             } catch { /* ignore */ }
         })();
 
-        // ── Role from URL param ────────────────────────────────────────────
+        // ── Role from URL param (display only) ─────────────────────────────
         const urlRole = new URLSearchParams(location.search).get('role') || 'fraud-analyst';
         const rolePill = document.getElementById('rolePill');
         if (rolePill) {
             rolePill.textContent = urlRole === 'auditor' ? 'Auditor' : 'Analyst';
         }
-        // Pre-check the register role radio if coming from role-selection
-        if (urlRole === 'auditor') {
-            document.getElementById('role-auditor').checked = true;
-        } else {
-            document.getElementById('role-analyst').checked = true;
-        }
 
-        // ── Tab toggle ─────────────────────────────────────────────────────
+        // ── Tab toggle (login vs auditor registration) ─────────────────────
         function showRegister() {
             document.getElementById('loginSection').classList.remove('active');
             document.getElementById('registerSection').classList.add('active');
@@ -811,7 +780,7 @@
             const email = document.getElementById('reg-email').value.trim();
             const password = document.getElementById('reg-password').value;
             const confirm_password = document.getElementById('reg-confirm').value;
-            const role = document.querySelector('input[name="reg-role"]:checked')?.value || 'AUDITOR';
+            const role = 'AUDITOR';  // self-service registrations are always AUDITOR
             const btn = document.getElementById('reg-btn');
 
             if (!full_name || !email || !password || !confirm_password) {
@@ -889,21 +858,17 @@
         async function rpConfirm() {
             if (!_pendingGoogleCredential || !_chosenRole) return;
             document.getElementById('rpOverlay').classList.remove('open');
-            // Now call the real handler with the stored credential and chosen role
-            await _sendGoogleCredential(_pendingGoogleCredential, _chosenRole);
+            // For security, Google self-signup always creates an AUDITOR account.
+            await _sendGoogleCredential(_pendingGoogleCredential, 'AUDITOR');
             _pendingGoogleCredential = null;
             _chosenRole = null;
         }
 
         // ── Google OAuth callback (called by GIS after user picks account) ──
         async function handleGoogleResponse(googleResponse) {
-            // Store credential and show role picker for new users
-            _pendingGoogleCredential = googleResponse.credential;
-            _chosenRole = null;
-            document.getElementById('rpConfirmBtn').disabled = true;
-            document.getElementById('rpAnalyst').classList.remove('selected');
-            document.getElementById('rpAuditor').classList.remove('selected');
-            document.getElementById('rpOverlay').classList.add('open');
+            // Directly treat all new Google users as AUDITOR (no role picker).
+            const credential = googleResponse.credential;
+            await _sendGoogleCredential(credential, 'AUDITOR');
         }
 
         async function _sendGoogleCredential(credential, role) {

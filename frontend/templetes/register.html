@@ -296,13 +296,15 @@
             </div>
         </div>
 
-        <h2 class="auth-title">Create Account</h2>
-        <p class="auth-sub">Register as a Fraud Analyst or Auditor.</p>
+        <h2 class="auth-title">Staff Accounts Managed by Admin</h2>
+        <p class="auth-sub">For security, analyst and auditor accounts are created by an administrator. Please contact your Argus admin if you need access.</p>
 
         <!-- Error / Success banners -->
         <div id="alert-error" class="alert alert-error"></div>
         <div id="alert-success" class="alert alert-success"></div>
 
+        <!-- Self-service registration is disabled in production-like mode. -->
+        <!--
         <form id="register-form" novalidate>
 
             <!-- Name + Email row -->
@@ -373,6 +375,7 @@
 
             <button type="submit" class="btn-register" id="submit-btn">Create Account</button>
         </form>
+        -->
 
         <div class="auth-footer">
             Already have an account? <a href="/login/">Sign in →</a>

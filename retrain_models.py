@@ -45,7 +45,7 @@ le = LabelEncoder()
 df["Device_Type_Enc"] = le.fit_transform(df["Device_Type"])
 print(f"  Known device classes: {list(le.classes_)}")
 joblib.dump(le, ENCODER_PATH)
-print(f"  Saved encoder → {ENCODER_PATH}")
+print(f"  Saved encoder -> {ENCODER_PATH}")
 
 # ── 3. Compute Is_Weekend if not present ──────────────────────────────────────
 if "Is_Weekend" not in df.columns:
@@ -92,7 +92,7 @@ rf_auc = roc_auc_score(y_test, rf.predict_proba(X_test)[:, 1])
 print(f"  RF ROC-AUC: {rf_auc:.4f}")
 print(classification_report(y_test, rf.predict(X_test), digits=3))
 joblib.dump(rf, MODEL_PATH)
-print(f"  Saved → {MODEL_PATH}")
+print(f"  Saved -> {MODEL_PATH}")
 
 # ── 7. XGBoost ────────────────────────────────────────────────────────────────
 print("\nTraining XGBoost...")
@@ -107,7 +107,7 @@ xgb_auc = roc_auc_score(y_test, xgb.predict_proba(X_test)[:, 1])
 print(f"  XGB ROC-AUC: {xgb_auc:.4f}")
 print(classification_report(y_test, xgb.predict(X_test), digits=3))
 joblib.dump(xgb, XGB_PATH)
-print(f"  Saved → {XGB_PATH}")
+print(f"  Saved -> {XGB_PATH}")
 
 # ── 8. Meta Logistic Regression (stacking) ───────────────────────────────────
 print("\nTraining Meta-LR (stacking)...")
@@ -124,11 +124,11 @@ meta.fit(X_meta_train, y_train)
 meta_auc = roc_auc_score(y_test, meta.predict_proba(X_meta_test)[:, 1])
 print(f"  Meta-LR ROC-AUC: {meta_auc:.4f}")
 joblib.dump(meta, META_PATH)
-print(f"  Saved → {META_PATH}")
+print(f"  Saved -> {META_PATH}")
 
 # ── 9. Summary ────────────────────────────────────────────────────────────────
 print("\n===== TRAINING COMPLETE =====")
 print(f"  RF      ROC-AUC: {rf_auc:.4f}")
 print(f"  XGB     ROC-AUC: {xgb_auc:.4f}")
 print(f"  Meta-LR ROC-AUC: {meta_auc:.4f}")
-print("\nRestart Django server to load new models: Ctrl+C → python manage.py runserver 8001")
+print("\nRestart Django server to load new models: press Ctrl+C, then run: python manage.py runserver 8001")

@@ -109,7 +109,7 @@ async function loadTransactions() {
         const rows = data.results || data;
         if (!rows?.length) { wrap.innerHTML = '<div class="empty-state"><p>No transactions found.</p></div>'; return; }
         const t = document.createElement('table'); t.className = 'data-table';
-        t.innerHTML = `<thead><tr><th>ID</th><th>Amount</th><th>Merchant</th><th>Status</th><th>Risk</th><th>Score</th><th>Date</th></tr></thead>
+        t.innerHTML = `<thead><tr><th>ID</th><th>Amount</th><th>Merchant</th><th>Status</th><th>Risk</th><th>Score</th><th>Date</th><th>Action</th></tr></thead>
         <tbody>${rows.map(r => `<tr>
             <td><code style="font-size:.78rem;">${r.id || '—'}</code></td>
             <td>${fmtAmt(r.amount || 0)}</td>
@@ -118,9 +118,38 @@ async function loadTransactions() {
             <td>${riskBadge(r.risk_level)}</td>
             <td>${r.fraud_score != null ? (r.fraud_score * 100).toFixed(1) + '%' : '—'}</td>
             <td style="white-space:nowrap;">${fmtDate(r.created_at)}</td>
+            <td><button class="btn btn-sm" onclick="reportSuspicious('${r.id}', this)" style="background:rgba(255,71,87,.12);border:1px solid rgba(255,71,87,.3);color:#ff4757;">🚩 Report</button></td>
         </tr>`).join('')}</tbody>`;
         wrap.innerHTML = ''; wrap.appendChild(t);
     } catch (e) { wrap.innerHTML = `<div class="empty-state"><p style="color:#ff6b78;">⚠️ ${e.message}</p></div>`; }
+}
+
+async function reportSuspicious(txnId, btn) {
+    const note = prompt('Explain why you think this transaction may be fraudulent. This note will be sent to the fraud analysts:');
+    if (note === null) return; // user cancelled
+    const trimmed = note.trim();
+    if (!trimmed) return;
+
+    btn.disabled = true;
+    const origText = btn.textContent;
+    btn.textContent = 'Sending…';
+    try {
+        const res = await ArgusAuth.authFetch(`/api/dashboard/transactions/${txnId}/flag/`, {
+            method: 'POST',
+            body: JSON.stringify({ note: trimmed }),
+        });
+        if (!res.ok) {
+            throw new Error(`HTTP ${res.status}`);
+        }
+        btn.textContent = 'Sent';
+        btn.style.background = 'rgba(46,213,115,.12)';
+        btn.style.borderColor = 'rgba(46,213,115,.3)';
+        btn.style.color = '#2ed573';
+    } catch (e) {
+        btn.disabled = false;
+        btn.textContent = origText;
+        alert('Failed to send to analysts: ' + e.message);
+    }
 }
 
 async function loadInvestigations() {

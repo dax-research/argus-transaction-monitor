@@ -180,13 +180,24 @@ def register_view(request):
     Body: { full_name, email, password, confirm_password, role }
     Returns: { access, refresh, user }
 
-    Creates the user then immediately issues OAuth2 tokens.
+    In a realistic setup:
+    - Auditors may self-register.
+    - Analyst (staff) accounts must be provisioned by an administrator.
     """
     full_name = request.data.get("full_name", "").strip()
     email     = request.data.get("email", "").strip().lower()
     password  = request.data.get("password", "")
     confirm   = request.data.get("confirm_password", "")
-    role      = request.data.get("role", "AUDITOR").upper()
+    requested_role = request.data.get("role", "AUDITOR").upper()
+
+    # Determine effective role:
+    # - Self-service (not superuser): always AUDITOR
+    # - Admins can explicitly choose ANALYST or AUDITOR
+    is_admin = bool(request.user and request.user.is_authenticated and request.user.is_superuser)
+    if is_admin:
+        role = requested_role if requested_role in ("ANALYST", "AUDITOR") else "AUDITOR"
+    else:
+        role = "AUDITOR"
 
     errors = {}
     if not full_name:
@@ -317,7 +328,7 @@ def google_auth_view(request):
     and issue the same Argus JWT/refresh-token pair as the password grant.
     """
     credential = request.data.get("credential", "").strip()
-    role       = request.data.get("role", "AUDITOR").upper()  # ANALYST or AUDITOR
+    requested_role = request.data.get("role", "AUDITOR").upper()
     if not credential:
         return Response({"detail": "Google credential (id_token) is required."}, status=400)
 
@@ -352,7 +363,9 @@ def google_auth_view(request):
         user.username   = username
         user.first_name = given_name or full_name.split(" ")[0]
         user.last_name  = family_name or (" ".join(full_name.split(" ")[1:]) if " " in full_name else "")
-        user.is_staff   = (role == "ANALYST")   # Set role chosen by user
+        # Self-service Google sign-in always creates an AUDITOR account.
+        # Analyst (staff) access must be granted separately by an admin.
+        user.is_staff   = False
         user.set_unusable_password()   # Prevent password-based login
         user.save()
     elif not user.is_active:
@@ -603,8 +616,15 @@ def flag_transaction_view(request, txn_id):
     """
     POST /api/dashboard/transactions/<txn_id>/flag/
     Manually flag a transaction for investigation.
-    Creates an Investigation row (status=OPEN) if none exists,
-    or marks an existing one as ANALYST_FLAGGED.
+
+    Called by:
+    - Analysts from the analyst dashboard (Flag button)
+    - Auditors from the auditor dashboard ("Report suspicious" action)
+
+    Creates an Investigation row (status=OPEN) if none exists, and records
+    who flagged it and an optional message:
+      - Analysts → "ANALYST_FLAGGED: <note>"
+      - Auditors → "AUDITOR_FLAGGED: <note>"
     """
     if not _is_analyst_or_auditor(request.user):
         return Response({"detail": "Authentication required."}, status=401)
@@ -618,17 +638,26 @@ def flag_transaction_view(request, txn_id):
     if request.user and request.user.is_authenticated:
         analyst = f"{request.user.first_name} {request.user.last_name}".strip() or request.user.username
 
+    # Determine who is flagging and build note
+    is_analyst = bool(request.user and request.user.is_authenticated and request.user.is_staff)
+    base_tag = "ANALYST_FLAGGED" if is_analyst else "AUDITOR_FLAGGED"
+    note_text = (request.data.get("note") or "").strip()
+    new_entry = f"{base_tag}: {note_text}" if note_text else base_tag
+
     inv, created = Investigation.objects.get_or_create(
         txn_id=txn_id,
         defaults={
-            "notes": "ANALYST_FLAGGED",
+            "notes": new_entry,
             "status": "OPEN",
             "analyst_name": analyst or "Unassigned",
         }
     )
     if not created:
-        inv.notes = "ANALYST_FLAGGED"
-        inv.analyst_name = analyst or inv.analyst_name
+        # Append a new line with the latest flag details
+        existing = (inv.notes or "").strip()
+        inv.notes = (existing + "\n\n" + new_entry) if existing else new_entry
+        if is_analyst:
+            inv.analyst_name = analyst or inv.analyst_name
         inv.save(update_fields=["notes", "analyst_name"])
 
     return Response({

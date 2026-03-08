@@ -78,7 +78,7 @@ class FraudSignalLogicTests(TestCase):
 
 
 class FraudRulesTests(TestCase):
-    """Verify rule-based evaluator returns BLOCK or pass."""
+    """Verify rule-based evaluator flags hard blocks and passes safe traffic."""
 
     def setUp(self):
         self.user = User.objects.create(
@@ -88,21 +88,36 @@ class FraudRulesTests(TestCase):
         )
 
     def test_high_amount_rule_blocks(self):
+        """
+        Amounts >= HIGH_AMOUNT_THRESHOLD should trigger a hard block rule.
+        """
         from transactions.fraud.evaluator import evaluate_rules
+        from transactions.fraud.constant import HIGH_AMOUNT_THRESHOLD
+
         txn = Transaction.objects.create(
             user=self.user,
-            amount=50_000,
+            amount=HIGH_AMOUNT_THRESHOLD,
             device_type="Mobile",
         )
         result = evaluate_rules(txn)
-        self.assertIn(result, ("BLOCK", 1))
+
+        self.assertTrue(result["hard_block"])
+        self.assertIn("high_amount_rule", result["triggered_rules"])
 
     def test_low_amount_rules_pass(self):
+        """
+        Safe, low-value transactions should not hard block or add risk boost.
+        """
         from transactions.fraud.evaluator import evaluate_rules
+        from transactions.fraud.constant import HIGH_AMOUNT_THRESHOLD
+
         txn = Transaction.objects.create(
             user=self.user,
-            amount=500,
+            amount=HIGH_AMOUNT_THRESHOLD / 10,
             device_type="Mobile",
         )
         result = evaluate_rules(txn)
-        self.assertIn(result, ("BLOCK", 1))
+
+        self.assertFalse(result["hard_block"])
+        self.assertEqual(result["risk_boost"], 0.0)
+        self.assertEqual(result["triggered_rules"], [])

@@ -53,7 +53,8 @@ def daily_velocity_rule(txn):
         created_at__date=today,
         status="SUCCESS",
     ).exclude(pk=txn.pk).aggregate(total=Sum("amount"))["total"] or Decimal("0")
-    if total + txn.amount > Decimal(str(DAILY_VELOCITY_LIMIT)):
+    txn_amount = Decimal(str(txn.amount))
+    if total + txn_amount > Decimal(str(DAILY_VELOCITY_LIMIT)):
         return "BLOCK"
     return None
 

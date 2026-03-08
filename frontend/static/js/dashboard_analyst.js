@@ -226,16 +226,24 @@ async function loadInvestigations() {
         rows.forEach(inv => { window._invData[inv.id] = inv; });
 
         const t = document.createElement('table'); t.className = 'data-table';
-        t.innerHTML = `<thead><tr><th>Case</th><th>Transaction</th><th>Status</th><th>Analyst</th><th>Notes</th><th>Created</th><th>Action</th></tr></thead>
-        <tbody>${rows.map(inv => `<tr>
-            <td>#${inv.id}</td>
-            <td><code style="font-size:.78rem;">${inv.transaction || '—'}</code></td>
-            <td>${invBadge(inv.status)}</td>
-            <td>${inv.analyst_name || inv.analyst || '—'}</td>
-            <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${(inv.notes || '').replace(/"/g, '&quot;')}">${inv.notes || '—'}</td>
-            <td style="white-space:nowrap;">${fmtDate(inv.created_at)}</td>
-            <td><button class="btn btn-outline btn-sm" onclick="openInvModal(${inv.id})">Update</button></td>
-        </tr>`).join('')}</tbody>`;
+        t.innerHTML = `<thead><tr><th>Case</th><th>Transaction</th><th>Status</th><th>Analyst</th><th>Notes</th><th>Notifications</th><th>Created</th><th>Action</th></tr></thead>
+        <tbody>${rows.map(inv => {
+            const hasAuditorFlag = (inv.notes || '').includes('AUDITOR_FLAGGED');
+            const notifCell = hasAuditorFlag
+                ? '<span class="badge badge-warning">Auditor report</span>'
+                : '<span class="badge badge-secondary">—</span>';
+            const safeNotes = (inv.notes || '').replace(/"/g, '&quot;');
+            return `<tr>
+                <td>#${inv.id}</td>
+                <td><code style="font-size:.78rem;">${inv.transaction || '—'}</code></td>
+                <td>${invBadge(inv.status)}</td>
+                <td>${inv.analyst_name || inv.analyst || '—'}</td>
+                <td style="max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${safeNotes}">${inv.notes || '—'}</td>
+                <td>${notifCell}</td>
+                <td style="white-space:nowrap;">${fmtDate(inv.created_at)}</td>
+                <td><button class="btn btn-outline btn-sm" onclick="openInvModal(${inv.id})">Update</button></td>
+            </tr>`;
+        }).join('')}</tbody>`;
         wrap.innerHTML = ''; wrap.appendChild(t);
     } catch (e) { wrap.innerHTML = `<div class="empty-state"><p style="color:#ff6b78;">⚠️ ${e.message}</p></div>`; }
 }

@@ -98,28 +98,7 @@ const ArgusAPI = (() => {
         return res.json();
     }
 
-    async function register({ full_name, email, password, confirm_password, role }) {
-        const res = await fetch('/api/auth/register/', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ full_name, email, password, confirm_password, role }),
-        });
-        if (!res.ok) {
-            let errMsg = 'Registration failed.';
-            try {
-                const data = await res.json();
-                const msgs = Object.entries(data)
-                    .flatMap(([k, v]) =>
-                        (Array.isArray(v) ? v : [v]).map(m =>
-                            `${k !== 'non_field_errors' ? k + ': ' : ''}${m}`
-                        )
-                    );
-                if (msgs.length) errMsg = msgs.join(' · ');
-            } catch { /* ignore */ }
-            throw new Error(errMsg);
-        }
-        return res.json();
-    }
+    // Self-service registration: auditors only; analysts are provisioned by admins.
 
     return { getStats, getTransactions, getInvestigations, updateInvestigation, getAuditLog, login, register };
 })();

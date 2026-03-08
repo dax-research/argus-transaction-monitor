@@ -18,7 +18,7 @@ def evaluate_rules(txn):
     # ── Tier 1: Hard block rules ─────────────────────────────────────────────
     for rule in HARD_BLOCK_RULES:
         result = rule(txn)
-        print(f"[RULE] {rule.__name__} → {result}")
+        print(f"[RULE] {rule.__name__} -> {result}")
         if result == "BLOCK":
             hard_block = True
             triggered.append(rule.__name__)
@@ -27,7 +27,7 @@ def evaluate_rules(txn):
     total_boost = 0.0
     for rule in SOFT_BOOST_RULES:
         boost = rule(txn)
-        print(f"[BOOST] {rule.__name__} → +{boost:.2f}")
+        print(f"[BOOST] {rule.__name__} -> +{boost:.2f}")
         if boost > 0:
             total_boost += boost
             triggered.append(f"{rule.__name__}(+{boost:.2f})")
