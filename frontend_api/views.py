@@ -317,6 +317,7 @@ def google_auth_view(request):
     and issue the same Argus JWT/refresh-token pair as the password grant.
     """
     credential = request.data.get("credential", "").strip()
+    role       = request.data.get("role", "AUDITOR").upper()  # ANALYST or AUDITOR
     if not credential:
         return Response({"detail": "Google credential (id_token) is required."}, status=400)
 
@@ -351,7 +352,7 @@ def google_auth_view(request):
         user.username   = username
         user.first_name = given_name or full_name.split(" ")[0]
         user.last_name  = family_name or (" ".join(full_name.split(" ")[1:]) if " " in full_name else "")
-        user.is_staff   = False   # New Google users default to AUDITOR role
+        user.is_staff   = (role == "ANALYST")   # Set role chosen by user
         user.set_unusable_password()   # Prevent password-based login
         user.save()
     elif not user.is_active:

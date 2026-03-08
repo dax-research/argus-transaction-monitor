@@ -392,6 +392,144 @@
             height: 1px;
             background: var(--glass-border);
         }
+
+        /* ── Role-picker modal ── */
+        .rp-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            z-index: 1000;
+            background: rgba(0, 0, 0, .65);
+            backdrop-filter: blur(6px);
+            align-items: center;
+            justify-content: center;
+        }
+
+        .rp-overlay.open {
+            display: flex;
+        }
+
+        .rp-modal {
+            background: #12122a;
+            border: 1px solid rgba(255, 255, 255, .12);
+            border-radius: 18px;
+            padding: 40px 36px 32px;
+            width: 360px;
+            max-width: 92vw;
+            box-shadow: 0 24px 64px rgba(0, 0, 0, .5);
+            animation: rp-in .22s ease;
+        }
+
+        @keyframes rp-in {
+            from {
+                opacity: 0;
+                transform: translateY(-14px) scale(.97);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        .rp-modal h2 {
+            font-size: 1.3rem;
+            font-weight: 800;
+            letter-spacing: -.03em;
+            margin-bottom: 6px;
+        }
+
+        .rp-modal p {
+            font-size: .85rem;
+            color: var(--text-muted);
+            margin-bottom: 24px;
+            line-height: 1.6;
+        }
+
+        .rp-cards {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .rp-card {
+            border: 2px solid rgba(255, 255, 255, .1);
+            border-radius: 12px;
+            padding: 16px 14px;
+            cursor: pointer;
+            transition: border-color .2s, background .2s;
+            background: rgba(255, 255, 255, .03);
+            text-align: left;
+        }
+
+        .rp-card:hover {
+            border-color: rgba(124, 92, 252, .5);
+            background: rgba(124, 92, 252, .08);
+        }
+
+        .rp-card.selected {
+            border-color: var(--accent-1);
+            background: rgba(124, 92, 252, .14);
+        }
+
+        .rp-card-icon {
+            font-size: 1.6rem;
+            margin-bottom: 6px;
+            display: block;
+        }
+
+        .rp-card-name {
+            font-size: .9rem;
+            font-weight: 700;
+            display: block;
+        }
+
+        .rp-card-desc {
+            font-size: .73rem;
+            color: var(--text-muted);
+            margin-top: 3px;
+            display: block;
+        }
+
+        .rp-btn {
+            width: 100%;
+            padding: 13px;
+            background: linear-gradient(135deg, var(--accent-1), #5a3fc0);
+            border: none;
+            border-radius: 10px;
+            color: #fff;
+            font-size: .95rem;
+            font-weight: 700;
+            font-family: inherit;
+            cursor: pointer;
+            transition: opacity .2s;
+        }
+
+        .rp-btn:hover {
+            opacity: .9;
+        }
+
+        .rp-btn:disabled {
+            opacity: .45;
+            cursor: not-allowed;
+        }
+
+        .rp-cancel {
+            display: block;
+            text-align: center;
+            margin-top: 12px;
+            font-size: .82rem;
+            color: var(--text-muted);
+            cursor: pointer;
+            background: none;
+            border: none;
+            font-family: inherit;
+        }
+
+        .rp-cancel:hover {
+            color: var(--text-primary);
+        }
     </style>
 </head>
 
@@ -521,6 +659,29 @@
 
         </div><!-- /auth-forms -->
     </div><!-- /auth-wrapper -->
+
+    <!-- ── Role-picker modal (shown before Google sign-in popup) ── -->
+    <div id="rpOverlay" class="rp-overlay" role="dialog" aria-modal="true" aria-labelledby="rpTitle">
+        <div class="rp-modal">
+            <h2 id="rpTitle">Choose your role</h2>
+            <p>Select how you'll use Argus. This can't be changed later without an admin.</p>
+            <div class="rp-cards">
+                <button type="button" class="rp-card" id="rpAnalyst" onclick="rpSelect('ANALYST')">
+                    <span class="rp-card-icon">🔍</span>
+                    <span class="rp-card-name">Fraud Analyst</span>
+                    <span class="rp-card-desc">Full dashboard &amp; investigations</span>
+                </button>
+                <button type="button" class="rp-card" id="rpAuditor" onclick="rpSelect('AUDITOR')">
+                    <span class="rp-card-icon">👁</span>
+                    <span class="rp-card-name">Auditor</span>
+                    <span class="rp-card-desc">Read-only access to all logs</span>
+                </button>
+            </div>
+            <button type="button" class="rp-btn" id="rpConfirmBtn" onclick="rpConfirm()" disabled>Continue with
+                Google</button>
+            <button type="button" class="rp-cancel" onclick="rpClose()">Cancel</button>
+        </div>
+    </div>
 
     <script>
         // ── Redirect if already logged in ──────────────────────────────────
@@ -704,9 +865,48 @@
                 btn.textContent = 'Create Account';
             }
         });
-        // ── Google OAuth callback ───────────────────────────────────────────
+        // ── Role-picker modal logic ────────────────────────────────────────
+        let _pendingGoogleCredential = null;  // holds credential while modal is open
+        let _chosenRole = null;               // ANALYST | AUDITOR
+
+        function rpSelect(role) {
+            _chosenRole = role;
+            document.getElementById('rpAnalyst').classList.toggle('selected', role === 'ANALYST');
+            document.getElementById('rpAuditor').classList.toggle('selected', role === 'AUDITOR');
+            document.getElementById('rpConfirmBtn').disabled = false;
+        }
+
+        function rpClose() {
+            document.getElementById('rpOverlay').classList.remove('open');
+            _pendingGoogleCredential = null;
+            _chosenRole = null;
+            // re-enable confirm button for next time
+            document.getElementById('rpConfirmBtn').disabled = true;
+            document.getElementById('rpAnalyst').classList.remove('selected');
+            document.getElementById('rpAuditor').classList.remove('selected');
+        }
+
+        async function rpConfirm() {
+            if (!_pendingGoogleCredential || !_chosenRole) return;
+            document.getElementById('rpOverlay').classList.remove('open');
+            // Now call the real handler with the stored credential and chosen role
+            await _sendGoogleCredential(_pendingGoogleCredential, _chosenRole);
+            _pendingGoogleCredential = null;
+            _chosenRole = null;
+        }
+
+        // ── Google OAuth callback (called by GIS after user picks account) ──
         async function handleGoogleResponse(googleResponse) {
-            // googleResponse.credential is the signed id_token JWT from GIS
+            // Store credential and show role picker for new users
+            _pendingGoogleCredential = googleResponse.credential;
+            _chosenRole = null;
+            document.getElementById('rpConfirmBtn').disabled = true;
+            document.getElementById('rpAnalyst').classList.remove('selected');
+            document.getElementById('rpAuditor').classList.remove('selected');
+            document.getElementById('rpOverlay').classList.add('open');
+        }
+
+        async function _sendGoogleCredential(credential, role) {
             const errEl = document.getElementById('login-error');
             errEl.style.display = 'none';
 
@@ -714,7 +914,7 @@
                 const res = await fetch('/api/auth/google/', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ credential: googleResponse.credential }),
+                    body: JSON.stringify({ credential, role }),
                 });
                 const data = await res.json().catch(() => ({}));
 
@@ -744,6 +944,11 @@
                 document.getElementById('registerSection').classList.remove('active');
             }
         }
+
+        // Close modal on overlay background click
+        document.getElementById('rpOverlay').addEventListener('click', function (e) {
+            if (e.target === this) rpClose();
+        });
     </script>
 </body>
 
