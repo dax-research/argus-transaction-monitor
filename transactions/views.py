@@ -167,12 +167,8 @@ def process_transaction(request):
 
         # Create OTP if needed
         if decision == "CHALLENGE":
-            otp_code = str(random.randint(100000, 999999))
-            TransactionOTP.objects.create(
-                transaction=txn_obj,
-                otp=otp_code,
-                expires_at=timezone.now() + timedelta(minutes=5)
-            )
+            from otp_service.services import create_otp
+            create_otp(txn_obj)
 
         return Response({
             "risk": round(risk, 4),

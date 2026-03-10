@@ -3,8 +3,10 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.status import HTTP_400_BAD_REQUEST
 from django.conf import settings
+from django.db import transaction as db_transaction
 from django.utils import timezone
 from transactions.models import Transaction
+from users.models import User
 from .models import TransactionOTP
 
 @api_view(["POST"])
@@ -26,22 +28,62 @@ def verify_otp(request):
 
     # Expiry check
     if otp_obj.is_expired():
+        txn.status = "FAILED"
+        txn.save()
+        return Response({"status": "FAILED", "reason": "OTP expired"})
+
+    # Attempt limit check
+    if otp_obj.attempts >= TransactionOTP.MAX_ATTEMPTS:
         txn.status = "BLOCKED"
         txn.save()
-        return Response({"status": "BLOCKED", "reason": "OTP expired"})
+        return Response({"status": "BLOCKED", "reason": "Too many attempts"})
 
     # Verify OTP
     if entered_otp == otp_obj.otp:
-        txn.status = "SUCCESS"
-        txn.otp_verified = True
-        txn.save()
-        otp_obj.is_verified = True
-        otp_obj.save()
-        return Response({"status": "SUCCESS"})
+        # Use a DB transaction so balance deduction + status update are atomic
+        with db_transaction.atomic():
+            user = User.objects.select_for_update().get(pk=txn.user_id)
+
+            # Guard: re-check balance hasn't dropped since OTP was issued
+            if user.account_balance < float(txn.amount):
+                txn.status = "FAILED"
+                txn.failure_reason = "Insufficient balance at time of OTP verification"
+                txn.save()
+                return Response({
+                    "status": "FAILED",
+                    "reason": "Insufficient balance",
+                    "balance": user.account_balance,
+                })
+
+            # Deduct balance
+            user.account_balance = max(0, user.account_balance - float(txn.amount))
+            user.save(update_fields=["account_balance"])
+
+            # Approve transaction
+            txn.status = "SUCCESS"
+            txn.otp_verified = True
+            txn.save()
+
+            otp_obj.is_verified = True
+            otp_obj.save()
+
+        return Response({
+            "status": "SUCCESS",
+            "balance": user.account_balance,
+        })
+
     else:
-        txn.status = "BLOCKED"
-        txn.save()
-        return Response({"status": "BLOCKED", "reason": "Incorrect OTP"})
+        otp_obj.attempts += 1
+        otp_obj.save()
+
+        remaining = TransactionOTP.MAX_ATTEMPTS - otp_obj.attempts
+        if remaining <= 0:
+            txn.status = "BLOCKED"
+            txn.save()
+            return Response({"status": "BLOCKED", "reason": "Too many incorrect attempts"})
+
+        return Response({"status": "FAILED", "reason": "Incorrect OTP", "attempts_remaining": remaining})
+
 
 
 @api_view(["GET"])
