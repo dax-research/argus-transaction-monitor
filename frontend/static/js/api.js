@@ -99,6 +99,7 @@ const ArgusAPI = (() => {
     }
 
     // Self-service registration: auditors only; analysts are provisioned by admins.
+    // (Registration is handled directly in login/register templates, so no JS wrapper here.)
 
-    return { getStats, getTransactions, getInvestigations, updateInvestigation, getAuditLog, login, register };
+    return { getStats, getTransactions, getInvestigations, updateInvestigation, getAuditLog, login };
 })();
