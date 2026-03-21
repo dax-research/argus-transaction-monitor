@@ -152,6 +152,51 @@ def process_transaction(request):
                 otp_required = False
                 failure_reason = "High risk score"
 
+        # Generate XAI Explanation Text to provide deeper insight into the reason
+        try:
+            ml_impacts = detector.explain_transaction(txn_data, history_df)
+            impact_dict = {}
+            for imp in ml_impacts:
+                name = imp["feature"]
+                score = imp["impact"]
+                if name == "Transaction_Amount": impact_dict["amount"] = score
+                elif name == "Is_Weekend": impact_dict["time"] = score
+                elif name == "New_Device": impact_dict["device"] = score
+                elif name == "Daily_Transaction_Count": impact_dict["frequency"] = score
+                else: impact_dict[name.lower()] = score
+
+            if risk_boost > 0:
+                impact_dict["location"] = impact_dict.get("location", 0) + risk_boost
+
+            sorted_features = sorted([{"feature": k, "impact": v} for k, v in impact_dict.items()], key=lambda x: abs(x["impact"]), reverse=True)[:3]
+            text_mapping = {
+                "amount": "amount is unusually high",
+                "location": "location is unfamiliar",
+                "time": "time is unusual",
+                "device": "device is unrecognized",
+                "frequency": "unusual frequency",
+            }
+            reasons = [text_mapping.get(f["feature"], f"unusual {f['feature']} pattern") for f in sorted_features if f["impact"] > 0]
+
+            if reasons:
+                if len(reasons) == 1:
+                    shap_reason = f"Flagged because {reasons[0]}."
+                elif len(reasons) == 2:
+                    shap_reason = f"Flagged because {reasons[0]} and {reasons[1]}."
+                else:
+                    shap_reason = f"Flagged because {reasons[0]}, {reasons[1]}, and {reasons[2]}."
+                
+                # Append or replace failure_reason
+                if failure_reason and failure_reason != "High risk score":
+                    failure_reason = f"{failure_reason} ({shap_reason})"
+                else:
+                    failure_reason = shap_reason
+            else:
+                if not failure_reason:
+                    failure_reason = "Transaction matched generic normal behavior."
+        except Exception:
+            pass
+
         txn_obj.status = txn_status
         txn_obj.fraud_decision = decision
         txn_obj.risk_score = risk

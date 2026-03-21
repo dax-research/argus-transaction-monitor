@@ -9,10 +9,17 @@ from django.contrib.auth import authenticate
 from django.contrib.auth.models import User as DjangoUser
 from django.utils import timezone
 from datetime import timedelta
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import api_view, permission_classes, throttle_classes
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework import status
+from frontend_api.throttles import (
+    LoginRateThrottle,
+    RegisterRateThrottle,
+    RefreshRateThrottle,
+    GoogleAuthThrottle,
+    AuthenticatedBurstThrottle,
+)
 from django.db.models import Count, Avg, Q
 
 from transactions.models import Transaction
@@ -126,6 +133,7 @@ def _legacy_user_payload(user) -> dict:
 
 @api_view(["POST"])
 @permission_classes([AllowAny])
+@throttle_classes([LoginRateThrottle])
 def login_view(request):
     """
     POST /api/auth/login/
@@ -174,6 +182,7 @@ def login_view(request):
 
 @api_view(["POST"])
 @permission_classes([AllowAny])
+@throttle_classes([RegisterRateThrottle])
 def register_view(request):
     """
     POST /api/auth/register/
@@ -257,7 +266,7 @@ def register_view(request):
 
 @api_view(["POST"])
 @permission_classes([AllowAny])
-def logout_view(request):
+def logout_view(request):  # logout tokens are consumed on use; no throttle required
     """
     POST /api/auth/logout/
     Body: { refresh }  (the refresh token string)
@@ -277,6 +286,7 @@ def logout_view(request):
 
 @api_view(["POST"])
 @permission_classes([AllowAny])
+@throttle_classes([RefreshRateThrottle])
 def refresh_view(request):
     """
     POST /api/auth/refresh/
@@ -317,6 +327,7 @@ def refresh_view(request):
 
 @api_view(["POST"])
 @permission_classes([AllowAny])
+@throttle_classes([GoogleAuthThrottle])
 def google_auth_view(request):
     """
     POST /api/auth/google/
@@ -395,6 +406,7 @@ def _is_analyst_or_auditor(user):
 
 
 @api_view(["GET"])
+@throttle_classes([AuthenticatedBurstThrottle])
 def stats_view(request):
     """
     GET /api/dashboard/stats/
@@ -449,6 +461,7 @@ def stats_view(request):
 
 
 @api_view(["GET"])
+@throttle_classes([AuthenticatedBurstThrottle])
 def transactions_view(request):
     """
     GET /api/dashboard/transactions/?status=&risk_level=
@@ -510,12 +523,14 @@ def transactions_view(request):
             "created_at": t.created_at.isoformat(),
             "device_type": t.device_type,
             "fraud_decision": t.fraud_decision,
+            "fraud_reason": t.failure_reason,
         })
 
     return Response(results)
 
 
 @api_view(["GET"])
+@throttle_classes([AuthenticatedBurstThrottle])
 def investigations_view(request):
     """
     GET /api/dashboard/investigations/
@@ -556,6 +571,7 @@ def investigations_view(request):
 
 
 @api_view(["PATCH"])
+@throttle_classes([AuthenticatedBurstThrottle])
 def investigation_update_view(request, pk):
     """PATCH /api/dashboard/investigations/<pk>/ — persist status, notes, resolution."""
     if not _is_analyst_or_auditor(request.user):
@@ -589,6 +605,7 @@ def investigation_update_view(request, pk):
 
 
 @api_view(["GET"])
+@throttle_classes([AuthenticatedBurstThrottle])
 def audit_log_view(request):
     """
     GET /api/dashboard/audit-log/
@@ -612,6 +629,7 @@ def audit_log_view(request):
 
 
 @api_view(["POST"])
+@throttle_classes([AuthenticatedBurstThrottle])
 def flag_transaction_view(request, txn_id):
     """
     POST /api/dashboard/transactions/<txn_id>/flag/
@@ -666,3 +684,238 @@ def flag_transaction_view(request, txn_id):
         "status": inv.status,
         "flagged": True,
     }, status=201 if created else 200)
+
+@api_view(["POST"])
+@throttle_classes([AuthenticatedBurstThrottle])
+def simulate_fraud_view(request):
+    """
+    POST /simulate
+    Input JSON: { "amount": float, "location": "string", "hour": int }
+    Returns: { "probability": float, "risk_level": "LOW" | "MEDIUM" | "HIGH" }
+    """
+    if not _is_analyst_or_auditor(request.user):
+        return Response({"detail": "Authentication required."}, status=401)
+
+    try:
+        amount = float(request.data.get("amount", 0))
+        location = str(request.data.get("location", "")).strip()
+        hour = int(request.data.get("hour", 0))
+    except (ValueError, TypeError):
+        return Response({"error": "Invalid input format"}, status=400)
+
+    from django.apps import apps
+    import pandas as pd
+    from django.utils import timezone
+    from datetime import timedelta
+    from transactions.views import _normalize_fraud_output
+
+    fraud_engine_app = apps.get_app_config("fraud_engine")
+    detector = getattr(fraud_engine_app, "detector", None)
+
+    if detector is None:
+        return Response({"error": "ML model not available"}, status=503)
+
+    # ── 1. Create Mock Environment ──────────────────────────────────────────
+    now = timezone.now().replace(hour=hour, minute=0, second=0, microsecond=0)
+    
+    # Fake user history of 5 small, successful transactions in India.
+    # This provides a baseline so the ML model can calculate averages
+    # and recognize anomalous volume.
+    history_records = []
+    for i in range(1, 6):
+        history_records.append({
+            "Transaction_Amount": 500.0,
+            "Device_Type": "Browser",
+            "Timestamp": now - timedelta(days=i),
+            "City": "India",
+            "Payment_Type": "CARD",
+            "status": "SUCCESS"
+        })
+    history_df = pd.DataFrame(history_records)
+
+    txn_data = {
+        "Transaction_Amount": amount,
+        "Account_Balance": 20000.0,
+        "Device_Type": "Browser",
+        "Timestamp": pd.Timestamp(now),
+        "City": location,
+        "Payment_Type": "CARD"
+    }
+
+    # ── 2. Run ML Model ─────────────────────────────────────────────────────
+    try:
+        raw_prediction = detector.predict_fraud(txn_data, history_df)
+        ml_risk, _ = _normalize_fraud_output(raw_prediction)
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return Response({"error": f"ML Model error: {str(e)}"}, status=500)
+
+    # ── 3. Apply Rule-based Boosts (from evaluator.py) ──────────────────────
+    risk_boost = 0.0
+    
+    # Location anomaly boost (+0.35)
+    if location.lower() != "india":
+        risk_boost += 0.35
+        
+    # High Amount Hard Block rule -> caps at 100%
+    if amount >= 100000:
+        ml_risk = 1.0
+
+    probability = min(ml_risk + risk_boost, 1.0)
+
+    # ── 4. Risk Thresholds ──────────────────────────────────────────────────
+    if probability < 0.3:
+        risk_level = "LOW"
+    elif probability <= 0.7:
+        risk_level = "MEDIUM"
+    else:
+        risk_level = "HIGH"
+
+    return Response({
+        "probability": round(probability, 3),
+        "risk_level": risk_level
+    })
+
+
+@api_view(["POST"])
+@throttle_classes([AuthenticatedBurstThrottle])
+def explain_fraud_view(request):
+    """
+    POST /explain/
+    Returns human readable SHAP descriptions of what caused the score.
+    """
+    if not _is_analyst_or_auditor(request.user):
+        return Response({"detail": "Authentication required."}, status=401)
+
+    try:
+        amount = float(request.data.get("amount", 0))
+        location = str(request.data.get("location", "")).strip()
+        hour = int(request.data.get("hour", 0))
+    except (ValueError, TypeError):
+        return Response({"error": "Invalid input format"}, status=400)
+
+    from django.apps import apps
+    import pandas as pd
+    from django.utils import timezone
+    from datetime import timedelta
+    from transactions.views import _normalize_fraud_output
+
+    fraud_engine_app = apps.get_app_config("fraud_engine")
+    detector = getattr(fraud_engine_app, "detector", None)
+    if detector is None:
+        return Response({"error": "ML model not available"}, status=503)
+
+    now = timezone.now().replace(hour=hour, minute=0, second=0, microsecond=0)
+    
+    history_records = []
+    for i in range(1, 6):
+        history_records.append({
+            "Transaction_Amount": 500.0,
+            "Device_Type": "Browser",
+            "Timestamp": now - timedelta(days=i),
+            "City": "India",
+            "Payment_Type": "CARD",
+            "status": "SUCCESS"
+        })
+    history_df = pd.DataFrame(history_records)
+
+    txn_data = {
+        "Transaction_Amount": amount,
+        "Account_Balance": 20000.0,
+        "Device_Type": "Browser",
+        "Timestamp": pd.Timestamp(now),
+        "City": location,
+        "Payment_Type": "CARD"
+    }
+
+    try:
+        raw_prediction = detector.predict_fraud(txn_data, history_df)
+        ml_risk, _ = _normalize_fraud_output(raw_prediction)
+        
+        # SHAP
+        ml_impacts = detector.explain_transaction(txn_data, history_df)
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return Response({"error": f"ML Model error: {str(e)}"}, status=500)
+
+    # Manual Rule Boosts (mirroring simulate_fraud_view behavior)
+    location_boost = 0.0
+    if location.lower() != "india":
+        location_boost = 0.35
+        
+    ml_risk_override = False
+    if amount >= 100000:
+        ml_risk_override = True
+
+    probability = min(ml_risk + location_boost if not ml_risk_override else 1.0, 1.0)
+
+    impact_dict = {}
+    for imp in ml_impacts:
+        name = imp["feature"]
+        score = imp["impact"]
+        if name == "Transaction_Amount":
+            impact_dict["amount"] = score
+            if ml_risk_override:
+                impact_dict["amount"] += 1.0  # Force to top
+        elif name == "Is_Weekend":
+            impact_dict["time"] = score
+        elif name == "New_Device":
+            impact_dict["device"] = score
+        elif name == "Daily_Transaction_Count":
+            impact_dict["frequency"] = score
+        else:
+            impact_dict[name.lower()] = score
+
+    if location_boost > 0:
+        impact_dict["location"] = impact_dict.get("location", 0) + location_boost
+
+    sorted_features = sorted([{"feature": k, "impact": v} for k, v in impact_dict.items()], 
+                             key=lambda x: abs(x["impact"]), reverse=True)[:3]
+
+    text_mapping = {
+        "amount": "Transaction amount is unusually high",
+        "location": "Transaction from unfamiliar location",
+        "time": "Transaction at unusual time",
+        "device": "Transaction from a new unrecognized device",
+        "frequency": "Unusual transaction frequency",
+    }
+
+    reasons = []
+    for f in sorted_features:
+        if f["impact"] > 0:
+            reason = text_mapping.get(f["feature"], f"Unusual {f['feature']} pattern")
+            reasons.append(reason)
+            
+    if not reasons:
+        explanation = "Transaction pattern matches normal behavior."
+    else:
+        # Lowercase starting character for inline joining
+        formatted_reasons = []
+        for r in reasons:
+            txt = r.lower()
+            if txt.startswith("transaction"):
+                txt = txt.replace("transaction", "", 1).strip()
+            formatted_reasons.append(txt)
+            
+        if len(formatted_reasons) == 1:
+            explanation = f"Transaction flagged because {formatted_reasons[0]}."
+        elif len(formatted_reasons) == 2:
+            explanation = f"Transaction flagged because {formatted_reasons[0]} and {formatted_reasons[1]}."
+        else:
+            explanation = f"Transaction flagged because {formatted_reasons[0]}, {formatted_reasons[1]}, and {formatted_reasons[2]}."
+
+    if probability < 0.3:
+        risk_level = "LOW"
+    elif probability < 0.7:
+        risk_level = "MEDIUM"
+    else:
+        risk_level = "HIGH"
+
+    return Response({
+        "probability": round(probability, 3),
+        "risk_level": risk_level,
+        "top_features": sorted_features,
+        "explanation": explanation
+    })

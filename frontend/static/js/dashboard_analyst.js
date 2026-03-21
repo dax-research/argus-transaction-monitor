@@ -12,6 +12,7 @@ const TABS = {
     overview: '📊 Dashboard Overview',
     transactions: '💳 All Transactions',
     investigations: '🔍 Investigation Cases',
+    simulation: '🧪 What-if Fraud Simulation',
     charts: '📈 Analytics',
     audit: '📋 Audit Log',
 };
@@ -182,7 +183,7 @@ function filterTransactions() {
 function buildTxnTable(rows) {
     if (!rows?.length) { const d = document.createElement('div'); d.className = 'empty-state'; d.textContent = 'No transactions found.'; return d; }
     const t = document.createElement('table'); t.className = 'data-table';
-    t.innerHTML = `<thead><tr><th>ID</th><th>Amount</th><th>Merchant</th><th>Status</th><th>Risk</th><th>Score</th><th>Date</th><th>Action</th></tr></thead>
+    t.innerHTML = `<thead><tr><th>ID</th><th>Amount</th><th>Merchant</th><th>Status</th><th>Risk</th><th>Score</th><th>Date</th><th>SHAP Reason</th><th>Action</th></tr></thead>
     <tbody>${rows.map(r => `<tr>
         <td><code style="font-size:.78rem;">${r.id || '—'}</code></td>
         <td>${fmtAmt(r.amount || 0)}</td>
@@ -191,6 +192,7 @@ function buildTxnTable(rows) {
         <td>${riskBadge(r.risk_level)}</td>
         <td>${r.fraud_score != null ? (r.fraud_score * 100).toFixed(1) + '%' : '—'}</td>
         <td style="white-space:nowrap;">${fmtDate(r.created_at)}</td>
+        <td style="font-size:0.8rem; color:#bbb; max-width:220px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${r.fraud_reason || '—'}">${r.fraud_reason || '—'}</td>
         <td><button class="btn btn-sm flag-btn" id="flag-${r.id}" onclick="flagTransaction('${r.id}', this)" style="background:rgba(255,165,2,.12);border:1px solid rgba(255,165,2,.3);color:#ffa502;">&#x1F6A9; Flag</button></td>
     </tr>`).join('')}</tbody>`;
     return t;
@@ -307,9 +309,175 @@ async function submitInvUpdate() {
 }
 document.getElementById('inv-modal')?.addEventListener('click', function (e) { if (e.target === this) closeModal(); });
 
+// ── Simulation ─────────────────────────────────────────────────────────────────
+let simTimeout = null;
+
+function runSimulation() {
+    const amount = document.getElementById('sim-amount-input')?.value;
+    const location = document.getElementById('sim-location')?.value;
+    const hour = document.getElementById('sim-time')?.value;
+    if (amount == null) return;
+
+    document.getElementById('sim-prob-text').textContent = '...';
+    document.getElementById('sim-explanation-text').textContent = 'Generating AI explanations...';
+    document.getElementById('sim-features-wrap').style.display = 'none';
+
+    ArgusAuth.authFetch('/explain/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ amount: parseFloat(amount), location: location, hour: parseInt(hour) })
+    })
+    .then(res => {
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        return res.json();
+    })
+    .then(data => {
+        updateSimulationUI(data);
+    })
+    .catch(e => {
+        console.error('Simulation error:', e);
+        document.getElementById('sim-prob-text').textContent = 'Err';
+        document.getElementById('sim-explanation-text').textContent = 'Failed to load explanation.';
+    });
+}
+
+function updateSimulationUI(data) {
+    const prob = (data.probability || 0) * 100;
+    const risk = data.risk_level || 'LOW';
+    
+    document.getElementById('sim-prob-text').textContent = prob.toFixed(1) + '%';
+    
+    const gauge = document.getElementById('sim-gauge');
+    const dashLength = Math.max(0, Math.min(100, prob));
+    
+    if (gauge) {
+        gauge.style.strokeDasharray = `${dashLength}, 100`;
+        
+        let color = '#2ed573';
+        let badgeClass = 'badge-success';
+        
+        if (risk === 'HIGH') {
+            color = '#ff4757';
+            badgeClass = 'badge-danger';
+        } else if (risk === 'MEDIUM') {
+            color = '#ffa502';
+            badgeClass = 'badge-warning';
+        }
+        
+        gauge.style.stroke = color;
+        
+        const badge = document.getElementById('sim-risk-badge');
+        if (badge) {
+            badge.className = 'badge ' + badgeClass;
+            badge.textContent = risk;
+        }
+    }
+
+    // ── SHAP Explainability ──
+    const explWrap = document.getElementById('sim-features-wrap');
+    const explText = document.getElementById('sim-explanation-text');
+    const featuresList = document.getElementById('sim-features-list');
+
+    if (data.explanation && data.top_features) {
+        explText.textContent = data.explanation;
+        explWrap.style.display = 'flex';
+        
+        // Bullet points
+        featuresList.innerHTML = '';
+        const labels = [];
+        const impacts = [];
+        const colors = [];
+        
+        data.top_features.forEach(f => {
+            const li = document.createElement('li');
+            li.style.marginBottom = '6px';
+            const sign = f.impact > 0 ? '+' : '';
+            const impactColor = f.impact > 0 ? '#ff4757' : '#2ed573';
+            li.innerHTML = `<strong>${f.feature.toUpperCase()}</strong>: <span style="color:${impactColor}; font-weight:bold;">${sign}${(f.impact * 100).toFixed(1)}%</span> influence`;
+            featuresList.appendChild(li);
+            
+            labels.push(f.feature);
+            impacts.push(f.impact);
+            colors.push(f.impact > 0 ? 'rgba(255, 71, 87, 0.7)' : 'rgba(46, 213, 115, 0.7)');
+        });
+
+        // Initialize or update SHAP Impact Chart
+        if (window.simChart) {
+            window.simChart.destroy();
+        }
+        
+        const ctx = document.getElementById('sim-impact-chart').getContext('2d');
+        window.simChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: 'Impact on Fraud Score',
+                    data: impacts,
+                    backgroundColor: colors,
+                    borderWidth: 1,
+                    borderColor: colors.map(c => c.replace('0.7', '1'))
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                maintainAspectRatio: false,
+                responsive: true,
+                plugins: { legend: { display: false }, tooltip: { callbacks: { label: function(c) { return 'Impact: ' + (c.raw * 100).toFixed(1) + '%'; } } } },
+                scales: {
+                    x: { ticks: { color: 'rgba(255,255,255,0.7)', callback: function(v) { return (v * 100).toFixed(0) + '%'; } }, grid: { color: 'rgba(255,255,255,0.1)' } },
+                    y: { ticks: { color: 'rgba(255,255,255,0.9)' }, grid: { display: false } }
+                }
+            }
+        });
+    } else {
+        explText.textContent = 'No explanation data generated.';
+        explWrap.style.display = 'none';
+    }
+}
+
+function setupSimulation() {
+    const amtRange = document.getElementById('sim-amount');
+    const amtInput = document.getElementById('sim-amount-input');
+    const locSelect = document.getElementById('sim-location');
+    const timeRange = document.getElementById('sim-time');
+    
+    if(!amtRange) return;
+    
+    const triggerSim = () => {
+        clearTimeout(simTimeout);
+        simTimeout = setTimeout(runSimulation, 300);
+    };
+    
+    amtRange.addEventListener('input', (e) => {
+        document.getElementById('sim-amt-val').textContent = e.target.value;
+        amtInput.value = e.target.value;
+        triggerSim();
+    });
+    
+    amtInput.addEventListener('input', (e) => {
+        const val = e.target.value;
+        document.getElementById('sim-amt-val').textContent = val;
+        amtRange.value = val;
+        triggerSim();
+    });
+    
+    locSelect.addEventListener('change', triggerSim);
+    
+    timeRange.addEventListener('input', (e) => {
+        let h = parseInt(e.target.value);
+        let timeStr = h.toString().padStart(2, '0') + ':00';
+        document.getElementById('sim-time-val').textContent = timeStr;
+        triggerSim();
+    });
+    
+    runSimulation();
+}
+
 // ── Bootstrap ──────────────────────────────────────────────────────────────────
 async function loadAll() {
     try { const s = await ArgusAPI.getStats(); renderKPI(s); renderCharts(s); } catch (e) { console.error('Stats:', e); }
     loadTransactions(); loadInvestigations(); loadAuditLog();
+    setupSimulation();
 }
 loadAll();

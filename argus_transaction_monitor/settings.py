@@ -64,7 +64,30 @@ REST_FRAMEWORK = {
     ],
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
-    ]
+    ],
+
+    # ── Rate Limiting (Throttling) ────────────────────────────────────────
+    # Custom per-scope throttle classes are defined in frontend_api/throttles.py
+    # and otp_service/views.py applies OtpVerifyThrottle directly.
+    'DEFAULT_THROTTLE_CLASSES': [
+        'rest_framework.throttling.AnonRateThrottle',
+        'rest_framework.throttling.UserRateThrottle',
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        # Auth endpoints — keyed by IP to block brute-force attacks
+        'login_anon':       '5/min',    # POST /api/auth/login/
+        'register_anon':    '3/min',    # POST /api/auth/register/
+        'otp_verify':       '5/min',    # POST /api/verify-otp/
+        'refresh_anon':     '10/min',   # POST /api/auth/refresh/
+        'google_auth_anon': '10/min',   # POST /api/auth/google/
+
+        # Dashboard endpoints — keyed by authenticated user ID
+        'burst':            '60/min',   # All /api/dashboard/* endpoints
+
+        # DRF built-in fallback rates (applied when no custom throttle is set)
+        'anon':             '100/min',
+        'user':             '1000/min',
+    },
 }
 
 # ── OAuth2 / JWT configuration ─────────────────────────────────────────────

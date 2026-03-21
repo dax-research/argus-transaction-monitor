@@ -1,5 +1,5 @@
 import pandas as pd
-df = pd.read_csv('Fraud_dataset.csv')
+df = pd.read_csv('../Fraud_dataset.csv')
 cols = list(df.columns)
 print('ALL COLUMNS:', cols)
 print('Fraud_Label values:', df['Fraud_Label'].value_counts().to_dict())

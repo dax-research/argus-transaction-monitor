@@ -1,7 +1,8 @@
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework.decorators import api_view, permission_classes, throttle_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.status import HTTP_400_BAD_REQUEST
+from frontend_api.throttles import OtpVerifyThrottle
 from django.conf import settings
 from django.db import transaction as db_transaction
 from django.utils import timezone
@@ -11,6 +12,7 @@ from .models import TransactionOTP
 
 @api_view(["POST"])
 @permission_classes([AllowAny])
+@throttle_classes([OtpVerifyThrottle])
 def verify_otp(request):
     txn_id = request.data.get("txn_id")
     entered_otp = request.data.get("otp")

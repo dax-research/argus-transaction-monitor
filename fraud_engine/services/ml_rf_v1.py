@@ -41,6 +41,7 @@ class ArgusFraudDetector:
         self._xgb_model = None
         self._encoder = None
         self._meta_model = None  # Logistic Regression: final fraud risk score from RF + XGB scores
+        self._shap_explainer = None
 
     # -------------------------
     # LOAD MODELS
@@ -254,6 +255,81 @@ class ArgusFraudDetector:
             decision = "DENY"
 
         return float(risk_score), decision
+
+    # -------------------------
+    # EXPLAIN SHAP
+    # -------------------------
+    def explain_transaction(self, transaction_data, user_history):
+        from datetime import timedelta
+        rf, xgb, le = self._get_assets()
+        now = pd.to_datetime(transaction_data.get('Timestamp', pd.Timestamp.now()))
+        if now.tzinfo is not None:
+            now = now.tz_convert("UTC").tz_localize(None)
+
+        if user_history is None or user_history.empty:
+            avg_amount_7d = 0
+            failed_7d = 0
+            txn_count_24h = 0
+            new_device_flag = 0
+        else:
+            ts_col = user_history['Timestamp'].copy()
+            if hasattr(ts_col.dtype, 'tz') and ts_col.dtype.tz is not None:
+                ts_col = ts_col.dt.tz_convert("UTC").dt.tz_localize(None)
+            else:
+                ts_col = pd.to_datetime(ts_col, utc=False).dt.tz_localize(None)
+
+            history_7d = user_history[ts_col >= (now - timedelta(days=7))]
+            history_24h = user_history[ts_col >= (now - timedelta(days=1))]
+
+            avg_amount_7d = float(history_7d['Transaction_Amount'].mean()) if not history_7d.empty else 0
+            failed_7d = int((history_7d['status'] == 'FAILED').sum()) if 'status' in history_7d.columns else 0
+            txn_count_24h = len(history_24h)
+
+            if 'Device_Type' in user_history.columns:
+                known_devices = set(user_history['Device_Type'].dropna().unique())
+                new_device_flag = 1 if transaction_data['Device_Type'] not in known_devices else 0
+            else:
+                new_device_flag = 0
+
+        try:
+            device_str = str(transaction_data.get('Device_Type', '')).strip() or 'Unknown'
+            device_enc = int(le.transform([device_str])[0])
+        except (ValueError, TypeError):
+            n_classes = len(le.classes_) if hasattr(le, 'classes_') else 2
+            device_enc = n_classes // 2
+
+        feature_dict = {
+            'Transaction_Amount': float(transaction_data.get('Transaction_Amount', 0)),
+            'Account_Balance': float(transaction_data.get('Account_Balance', 0)),
+            'Daily_Transaction_Count': txn_count_24h,
+            'Avg_Transaction_Amount_7d': avg_amount_7d,
+            'Failed_Transaction_Count_7d': failed_7d,
+            'Is_Weekend': int(now.weekday() >= 5),
+            'New_Device': int(new_device_flag),
+            'Device_Type_Enc': device_enc
+        }
+
+        X_pred = pd.DataFrame([feature_dict])[self.FEATURE_COLS]
+        
+        if self._shap_explainer is None:
+            import shap
+            self._shap_explainer = shap.TreeExplainer(rf)
+            
+        shap_values = self._shap_explainer.shap_values(X_pred)
+        
+        # Determine format of shap_values based on SHAP version / sklearn model
+        if isinstance(shap_values, list):
+            impacts = shap_values[1][0]
+        elif len(shap_values.shape) == 3:
+            impacts = shap_values[0, :, 1]
+        else:
+            impacts = shap_values[0]
+
+        impact_list = []
+        for i, col in enumerate(self.FEATURE_COLS):
+            impact_list.append({"feature": col, "impact": float(impacts[i])})
+            
+        return impact_list
 
 
 # ==============================

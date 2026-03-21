@@ -16,7 +16,7 @@ import joblib
 
 warnings.filterwarnings("ignore")
 
-BASE_DIR   = os.path.dirname(os.path.abspath(__file__))
+BASE_DIR   = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 ASSETS_DIR = os.path.join(BASE_DIR, "ml_assests")
 
 MODEL_PATH   = os.path.join(ASSETS_DIR, "argus_rf_model.joblib")

@@ -16,4 +16,8 @@ urlpatterns = [
     path("api/dashboard/investigations/",                    views.investigations_view,       name="dash-investigations"),
     path("api/dashboard/investigations/<int:pk>/",           views.investigation_update_view, name="dash-inv-update"),
     path("api/dashboard/audit-log/",                         views.audit_log_view,            name="dash-audit"),
+    
+    # Simulation & SHAP Explainability
+    path("simulate/",                                        views.simulate_fraud_view,       name="simulate-fraud"),
+    path("explain/",                                         views.explain_fraud_view,        name="explain-fraud"),
 ]

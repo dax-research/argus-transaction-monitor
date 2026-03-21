@@ -16,6 +16,7 @@
 - [Fraud Detection Logic](#fraud-detection-logic)
 - [ML Model](#ml-model)
 - [Database Models](#database-models)
+- [Security](#security)
 - [License](#license)
 
 ---
@@ -25,12 +26,14 @@
 - **Real-time fraud detection** on every transaction
 - **Two-tier rule engine** — hard-block rules for high-confidence fraud, soft risk-boost rules for contextual signals
 - **ML ensemble model** — Random Forest + XGBoost stacked with a Meta Logistic Regression
+- **Explainable AI (XAI)** — SHAP integration provides human-readable context and visual impact charts for why transactions are flagged
 - **OTP challenge** for medium-risk transactions (30%–70% risk score)
 - **Customer App** — login, send money, view transaction history and balance
 - **Analyst & Auditor Dashboards** — KPI cards, charts, transaction table, investigation case management, audit log
 - **Staff roles** — Analysts (full investigation powers) vs Auditors (read-only, can escalate suspicious transactions)
 - **OAuth2 + JWT authentication** for the staff dashboards (email/password + Google Sign-In; auditors can self-register, analysts are admin-provisioned)
 - **Token authentication** for the customer app API
+- **API Rate Limiting** — DRF throttling on all critical endpoints to prevent brute-force and credential-stuffing attacks
 
 ---
 
@@ -67,7 +70,7 @@ Django REST API (port 8001)  ◄──── Analyst Dashboard (/dashboard/analy
 | Layer | Technology |
 |---|---|
 | Backend | Python 3.x, Django 6.x, Django REST Framework |
-| ML | scikit-learn, XGBoost, joblib, pandas, numpy |
+| ML & XAI | scikit-learn, XGBoost, shap, joblib, pandas, numpy |
 | Auth (staff dashboards) | django-oauth-toolkit issuing signed JWT access tokens |
 | Auth (customer) | DRF Token authentication |
 | Database | SQLite (dev) / MySQL (prod) |
@@ -106,6 +109,13 @@ argus-transaction-monitor/
 │
 ├── users/                       # Customer user model
 ├── ml_assests/                  # Trained model files (.joblib)
+├── scripts/                     # Independent utility and development scripts
+│   ├── backfill.py              # Bulk historic SHAP generator for old transactions
+│   ├── inspect_data.py          # Data validation and feature checking
+│   ├── retrain_models.py        # ML Model Training Pipeline
+│   ├── test_ml.py               # ML verification unit test script
+│   ├── test_shap.py             # SHAP experimentation test script
+│   └── test_speed.py            # Prediction and tree explosion performance tester
 │
 ├── customer-app/                # Customer-facing static web app
 │   ├── index.html               # Login page
@@ -179,7 +189,7 @@ Password: Analyst@123
 ### 6. (Optional) Retrain ML models
 
 ```bash
-python retrain_models.py
+python scripts/retrain_models.py
 ```
 
 ---
@@ -248,6 +258,8 @@ Open: **http://localhost:8001/login/**
 | PATCH | `/api/dashboard/investigations/<id>/` | Update case status |
 | GET | `/api/dashboard/audit-log/` | Recent transaction audit trail |
 | POST | `/api/dashboard/transactions/<txn_id>/flag/` | Manually flag a transaction for investigation; body may include `{ "note": "auditor/analyst comment" }` and is recorded on the Investigation |
+| POST | `/simulate/` | Submit generic parameters (amount, time, location) to fetch raw ML odds without triggering backend DB inserts |
+| POST | `/explain/` | Analyzes a parameterized JSON configuration and returns a localized SHAP evaluation tree |
 
 ---
 
@@ -287,7 +299,9 @@ The model lives in `fraud_engine/services/ml_rf_v1.py` and uses pre-trained jobl
 
 **Features used:** amount, daily transaction count, 7-day transaction count, 7-day average amount, is new device, is weekend, device type (encoded), hour of day.
 
-To retrain: `python retrain_models.py` (requires `Fraud_dataset.csv` in project root)
+**Explainable AI:** The ML pipeline utilizes `shap.TreeExplainer` on the Random Forest model to extract feature-level contribution percentages (`SHAP values`) for every transaction. These impact scores are mapped into descriptive reason codes and rendered on the Analyst Dashboard's Simulation and Transaction panels.
+
+To retrain: `python scripts/retrain_models.py` (requires `Fraud_dataset.csv` in project root)
 
 ---
 
@@ -318,16 +332,34 @@ To retrain: `python retrain_models.py` (requires `Fraud_dataset.csv` in project 
 | `failure_reason` | CharField | Why it was blocked |
 | `created_at` | DateTimeField | Auto-generated |
 
-## Planned Security Enhancements
+## Security
 
-To ensure the platform is production-ready, the following security measures will be implemented in the future:
+### API Rate Limiting
+
+DRF throttling is applied to all security-sensitive endpoints to defend against brute-force and credential-stuffing attacks. Throttle classes live in `frontend_api/throttles.py` and rates are configured in `settings.REST_FRAMEWORK['DEFAULT_THROTTLE_RATES']`.
+
+| Endpoint | Throttle class | Default limit | Keyed by |
+|---|---|---|---|
+| `POST /api/auth/login/` | `LoginRateThrottle` | **5 / min** | IP |
+| `POST /api/auth/register/` | `RegisterRateThrottle` | **3 / min** | IP |
+| `POST /api/auth/refresh/` | `RefreshRateThrottle` | **10 / min** | IP |
+| `POST /api/auth/google/` | `GoogleAuthThrottle` | **10 / min** | IP |
+| `POST /api/verify-otp/` | `OtpVerifyThrottle` | **5 / min** | IP |
+| All `/api/dashboard/*` endpoints | `AuthenticatedBurstThrottle` | **60 / min** | User ID |
+
+> **Adjusting limits**: Change the values in `settings.py` under `REST_FRAMEWORK['DEFAULT_THROTTLE_RATES']`. No code changes are needed — the throttle classes read the rate dynamically at startup.
+>
+> **Throttled responses**: Return `HTTP 429 Too Many Requests` with a `Retry-After` header indicating when the client may retry.
+
+### Planned Security Enhancements
+
+The following measures are planned for production readiness:
 
 1. **Production Django Settings**: Setting `DEBUG = False`, enforcing secure cookies (`SESSION_COOKIE_SECURE = True`, `CSRF_COOKIE_SECURE = True`), and enabling Strict Transport Security (HSTS).
-2. **API Rate Limiting**: Adding DRF throttling to critical endpoints (like login and OTP verification) to prevent brute-force attacks.
-3. **Database Migration**: Switching from SQLite to a robust relational database like PostgreSQL or MySQL for better concurrency and scale.
-4. **Role-Based Access Control (RBAC) & Audit Logging**: Enforcing strict boundaries between Analyst and Auditor actions and maintaining an immutable `AuditLog` for staff activities.
-5. **Multi-Factor Authentication (MFA) for Staff**: Requiring Analysts and Auditors to use authenticator apps or email OTPs when signing into the dashboard.
-6. **Content Security Policy (CSP)**: Adding CSP headers to prevent Cross-Site Scripting (XSS) attacks on the frontend.
+2. **Database Migration**: Switching from SQLite to a robust relational database like PostgreSQL or MySQL for better concurrency and scale.
+3. **Role-Based Access Control (RBAC) & Audit Logging**: Enforcing strict boundaries between Analyst and Auditor actions and maintaining an immutable `AuditLog` for staff activities.
+4. **Multi-Factor Authentication (MFA) for Staff**: Requiring Analysts and Auditors to use authenticator apps or email OTPs when signing into the dashboard.
+5. **Content Security Policy (CSP)**: Adding CSP headers to prevent Cross-Site Scripting (XSS) attacks on the frontend.
 
 ---
 
