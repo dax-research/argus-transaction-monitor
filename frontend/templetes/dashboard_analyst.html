@@ -16,7 +16,9 @@
         <!-- ══════════════ SIDEBAR ══════════════ -->
         <aside class="sidebar" id="sidebar">
             <div class="sidebar-logo">
-                <div class="lp-logo"><span class="grad-text">Argus</span></div>
+                <a href="/" style="text-decoration:none;">
+                    <div class="lp-logo"><span class="grad-text">Argus</span></div>
+                </a>
                 <div class="logo-sub">Transaction Monitor</div>
             </div>
 
@@ -177,67 +179,90 @@
                 <div id="tab-simulation" class="tab-panel">
                     <div class="section-header">
                         <div class="section-title">What-if Fraud Simulation</div>
-                        <span style="font-size:.8rem;color:var(--text-muted);">Test fraud probability under different conditions</span>
+                        <span style="font-size:.8rem;color:var(--text-muted);">Test fraud probability under different
+                            conditions</span>
                     </div>
-                    
+
                     <div style="display: flex; gap: 20px; flex-wrap: wrap;">
                         <div class="glass" style="flex: 1; min-width: 300px; padding: 20px;">
                             <h3 style="margin-top:0; color:#fff;">Parameters</h3>
-                            
+
                             <div class="form-group" style="margin-bottom: 15px;">
-                                <label style="display:block; margin-bottom:5px; color:#ccc;">Transaction Amount ($<span id="sim-amt-val">1000</span>)</label>
-                                <input type="range" id="sim-amount" min="1" max="50000" step="10" value="1000" style="width:100%;">
-                                <input type="number" id="sim-amount-input" value="1000" style="width:100%; margin-top:5px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.12); color:#fff; border-radius:4px; padding:5px;">
+                                <label style="display:block; margin-bottom:5px; color:#ccc;">Transaction Amount ($<span
+                                        id="sim-amt-val">1000</span>)</label>
+                                <input type="range" id="sim-amount" min="1" max="50000" step="10" value="1000"
+                                    style="width:100%;">
+                                <input type="number" id="sim-amount-input" value="1000"
+                                    style="width:100%; margin-top:5px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.12); color:#fff; border-radius:4px; padding:5px;">
                             </div>
-                            
+
                             <div class="form-group" style="margin-bottom: 15px;">
                                 <label style="display:block; margin-bottom:5px; color:#ccc;">Location</label>
-                                <select id="sim-location" style="width:100%; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.12); color:#fff; border-radius:4px; padding:8px; outline:none;">
+                                <select id="sim-location"
+                                    style="width:100%; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.12); color:#fff; border-radius:4px; padding:8px; outline:none;">
                                     <option value="India" style="color:#333;">India (Domestic)</option>
                                     <option value="USA" style="color:#333;">USA (International)</option>
                                     <option value="UK" style="color:#333;">UK (International)</option>
                                     <option value="Nigeria" style="color:#333;">Nigeria (High Risk)</option>
                                 </select>
                             </div>
-                            
+
                             <div class="form-group">
-                                <label style="display:block; margin-bottom:5px; color:#ccc;">Time of Day (<span id="sim-time-val">12:00</span>)</label>
-                                <input type="range" id="sim-time" min="0" max="23" step="1" value="12" style="width:100%;">
+                                <label style="display:block; margin-bottom:5px; color:#ccc;">Time of Day (<span
+                                        id="sim-time-val">12:00</span>)</label>
+                                <input type="range" id="sim-time" min="0" max="23" step="1" value="12"
+                                    style="width:100%;">
                             </div>
                         </div>
-                        
-                        <div class="glass" style="flex: 1; min-width: 300px; padding: 20px; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;">
+
+                        <div class="glass"
+                            style="flex: 1; min-width: 300px; padding: 20px; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;">
                             <h3 style="margin-top:0; color:#fff;">Result</h3>
-                            
+
                             <div style="position: relative; width: 150px; height: 150px; margin: 20px auto;">
                                 <svg viewBox="0 0 36 36" style="width: 100%; height: 100%;">
-                                    <path d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="3" />
-                                    <path id="sim-gauge" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" fill="none" stroke="#2ed573" stroke-width="3" stroke-dasharray="0, 100" style="transition: stroke-dasharray 0.5s ease, stroke 0.5s ease;" />
+                                    <path
+                                        d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                                        fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="3" />
+                                    <path id="sim-gauge"
+                                        d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                                        fill="none" stroke="#2ed573" stroke-width="3" stroke-dasharray="0, 100"
+                                        style="transition: stroke-dasharray 0.5s ease, stroke 0.5s ease;" />
                                 </svg>
-                                <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;">
-                                    <span id="sim-prob-text" style="font-size: 2rem; font-weight: bold; color: #fff;">0%</span>
+                                <div
+                                    style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                                    <span id="sim-prob-text"
+                                        style="font-size: 2rem; font-weight: bold; color: #fff;">0%</span>
                                 </div>
                             </div>
-                            
+
                             <div style="margin-top: 10px;">
                                 <span style="color:#ccc; font-size:0.9rem;">Risk Level:</span>
-                                <div id="sim-risk-badge" class="badge badge-success" style="font-size:1rem; padding:5px 12px; margin-top:5px;">LOW</div>
+                                <div id="sim-risk-badge" class="badge badge-success"
+                                    style="font-size:1rem; padding:5px 12px; margin-top:5px;">LOW</div>
                             </div>
                         </div>
 
                         <!-- ── Explainability Panel ── -->
                         <div class="glass" style="flex: 1.5; min-width: 300px; padding: 20px;">
                             <h3 style="margin-top:0; color:#fff;">Why this is fraud?</h3>
-                            <p id="sim-explanation-text" style="color:#ccc; font-size:0.95rem; margin-bottom:15px; min-height:45px; line-height:1.4;">Waiting for simulation...</p>
-                            
+                            <p id="sim-explanation-text"
+                                style="color:#ccc; font-size:0.95rem; margin-bottom:15px; min-height:45px; line-height:1.4;">
+                                Waiting for simulation...</p>
+
                             <div id="sim-features-wrap" style="display:none; flex-direction:column; gap:10px;">
-                                <h4 style="margin:0; color:#fff; font-size:0.9rem; text-transform:uppercase; letter-spacing:1px; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:5px;">Key Drivers</h4>
-                                <ul id="sim-features-list" style="margin:0; padding-left:20px; color:#ddd; font-size:0.9rem;">
+                                <h4
+                                    style="margin:0; color:#fff; font-size:0.9rem; text-transform:uppercase; letter-spacing:1px; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:5px;">
+                                    Key Drivers</h4>
+                                <ul id="sim-features-list"
+                                    style="margin:0; padding-left:20px; color:#ddd; font-size:0.9rem;">
                                 </ul>
-                                
-                                <h4 style="margin:10px 0 0; color:#fff; font-size:0.9rem; text-transform:uppercase; letter-spacing:1px; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:5px;">Impact Chart</h4>
+
+                                <h4
+                                    style="margin:10px 0 0; color:#fff; font-size:0.9rem; text-transform:uppercase; letter-spacing:1px; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:5px;">
+                                    Impact Chart</h4>
                                 <div style="width: 100%; height: 120px; position:relative; margin-top:10px;">
-                                     <canvas id="sim-impact-chart"></canvas>
+                                    <canvas id="sim-impact-chart"></canvas>
                                 </div>
                             </div>
                         </div>

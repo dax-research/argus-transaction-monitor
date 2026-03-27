@@ -6,7 +6,7 @@ from rest_framework.authtoken.views import obtain_auth_token
 
 
 def index(request):
-    return HttpResponse("<h1>Argus Transaction Monitor</h1><p>API ready.</p>")
+    return render(request, "index.html")
 
 
 from django.conf import settings

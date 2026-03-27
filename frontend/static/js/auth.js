@@ -87,7 +87,7 @@ const ArgusAuth = (() => {
             }).catch(() => { });
         }
         clearSession();
-        window.location.href = '/login/';
+        window.location.href = '/';
     }
 
     // ── Navigation helpers ─────────────────────────────────────────────────

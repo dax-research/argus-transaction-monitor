@@ -297,7 +297,8 @@
         </div>
 
         <h2 class="auth-title">Staff Accounts Managed by Admin</h2>
-        <p class="auth-sub">For security, analyst and auditor accounts are created by an administrator. Please contact your Argus admin if you need access.</p>
+        <p class="auth-sub">For security, analyst and auditor accounts are created by an administrator. Please contact
+            your Argus admin if you need access.</p>
 
         <!-- Error / Success banners -->
         <div id="alert-error" class="alert alert-error"></div>
@@ -308,72 +309,72 @@
         <form id="register-form" novalidate>
 
             <!-- Name + Email row -->
-            <div class="form-row">
-                <div class="form-group">
-                    <label for="full-name">Full Name</label>
-                    <div class="input-wrap">
-                        <input id="full-name" type="text" placeholder="Jane Smith" autocomplete="name" required />
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label for="email">Work Email</label>
-                    <div class="input-wrap">
-                        <input id="email" type="email" placeholder="you@argus.dev" autocomplete="email" required />
-                    </div>
-                </div>
-            </div>
-
-            <!-- Role -->
+        <div class="form-row">
             <div class="form-group">
-                <label>Role</label>
-                <div class="role-selector">
-                    <label>
-                        <input class="role-option" type="radio" name="role" value="ANALYST" id="role-analyst" />
-                        <div class="role-card">
-                            <span class="role-card-icon">🔍</span>
-                            <span class="role-card-name">Fraud Analyst</span>
-                            <span class="role-card-desc">Full dashboard + investigation management</span>
-                        </div>
-                    </label>
-                    <label>
-                        <input class="role-option" type="radio" name="role" value="AUDITOR" id="role-auditor" checked />
-                        <div class="role-card">
-                            <span class="role-card-icon">👁</span>
-                            <span class="role-card-name">Auditor</span>
-                            <span class="role-card-desc">Read-only access to all logs</span>
-                        </div>
-                    </label>
-                </div>
-            </div>
-
-            <!-- Password -->
-            <div class="form-group">
-                <label for="password">Password</label>
+                <label for="full-name">Full Name</label>
                 <div class="input-wrap">
-                    <input id="password" type="password" placeholder="Min 8 characters" autocomplete="new-password"
-                        required />
-                    <button type="button" class="pw-toggle" id="pw-toggle1" aria-label="Show password">👁</button>
-                </div>
-                <!-- strength meter -->
-                <div class="pw-strength">
-                    <div class="pw-strength-bar">
-                        <div class="pw-strength-fill" id="strength-fill"></div>
-                    </div>
-                    <div class="pw-strength-label" id="strength-label">—</div>
+                    <input id="full-name" type="text" placeholder="Jane Smith" autocomplete="name" required />
                 </div>
             </div>
-
-            <!-- Confirm Password -->
             <div class="form-group">
-                <label for="confirm-password">Confirm Password</label>
+                <label for="email">Work Email</label>
                 <div class="input-wrap">
-                    <input id="confirm-password" type="password" placeholder="Repeat your password"
-                        autocomplete="new-password" required />
-                    <button type="button" class="pw-toggle" id="pw-toggle2" aria-label="Show password">👁</button>
+                    <input id="email" type="email" placeholder="you@argus.dev" autocomplete="email" required />
                 </div>
             </div>
+        </div>
 
-            <button type="submit" class="btn-register" id="submit-btn">Create Account</button>
+        <!-- Role -->
+        <div class="form-group">
+            <label>Role</label>
+            <div class="role-selector">
+                <label>
+                    <input class="role-option" type="radio" name="role" value="ANALYST" id="role-analyst" />
+                    <div class="role-card">
+                        <span class="role-card-icon">🔍</span>
+                        <span class="role-card-name">Fraud Analyst</span>
+                        <span class="role-card-desc">Full dashboard + investigation management</span>
+                    </div>
+                </label>
+                <label>
+                    <input class="role-option" type="radio" name="role" value="AUDITOR" id="role-auditor" checked />
+                    <div class="role-card">
+                        <span class="role-card-icon">👁</span>
+                        <span class="role-card-name">Auditor</span>
+                        <span class="role-card-desc">Read-only access to all logs</span>
+                    </div>
+                </label>
+            </div>
+        </div>
+
+        <!-- Password -->
+        <div class="form-group">
+            <label for="password">Password</label>
+            <div class="input-wrap">
+                <input id="password" type="password" placeholder="Min 8 characters" autocomplete="new-password"
+                    required />
+                <button type="button" class="pw-toggle" id="pw-toggle1" aria-label="Show password">👁</button>
+            </div>
+            <!-- strength meter -->
+            <div class="pw-strength">
+                <div class="pw-strength-bar">
+                    <div class="pw-strength-fill" id="strength-fill"></div>
+                </div>
+                <div class="pw-strength-label" id="strength-label">—</div>
+            </div>
+        </div>
+
+        <!-- Confirm Password -->
+        <div class="form-group">
+            <label for="confirm-password">Confirm Password</label>
+            <div class="input-wrap">
+                <input id="confirm-password" type="password" placeholder="Repeat your password"
+                    autocomplete="new-password" required />
+                <button type="button" class="pw-toggle" id="pw-toggle2" aria-label="Show password">👁</button>
+            </div>
+        </div>
+
+        <button type="submit" class="btn-register" id="submit-btn">Create Account</button>
         </form>
         -->
 
