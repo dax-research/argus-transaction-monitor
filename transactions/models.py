@@ -1,5 +1,4 @@
 import uuid
-
 from django.db import models
 from users.models import User
 
@@ -10,15 +9,20 @@ def generate_txn_id():
 
 class Transaction(models.Model):
 
-    #--Relationships--#
+    # ---- Relationships ----
     user = models.ForeignKey(
-            User,
-            on_delete=models.CASCADE,
-            related_name='transactions'
-        )
+        User,
+        on_delete=models.CASCADE,
+        related_name='transactions'
+    )
 
     # ---- Transaction Identity ----
-    txn_id = models.CharField(max_length=100, unique=True, default=generate_txn_id)
+    txn_id = models.CharField(
+        max_length=100,
+        primary_key=True,
+        default=generate_txn_id,
+        editable=False
+    )
 
     # ---- Amount & Currency ----
     amount = models.DecimalField(max_digits=15, decimal_places=2)
@@ -29,19 +33,19 @@ class Transaction(models.Model):
 
     # ---- Transaction Status ----
     STATUS_CHOICES = [
-        ('INITIATED', 'Initiated'), 
-        ('SUCCESS', 'Success'), #Aproved
-        ('FAILED', 'Failed'), #technical failure
+        ('INITIATED', 'Initiated'),
+        ('SUCCESS', 'Success'),
+        ('FAILED', 'Failed'),
         ('OTP_REQUIRED', 'OTP Required'),
-        ('BLOCKED', 'Blocked'), #fraud
+        ('BLOCKED', 'Blocked'),
     ]
     status = models.CharField(
         max_length=20,
         choices=STATUS_CHOICES,
         default='INITIATED'
     )
-    
-     # ---- Fraud Decision ----
+
+    # ---- Fraud Decision ----
     FRAUD_DECISION_CHOICES = [
         ('ALLOW', 'Allow'),
         ('CHALLENGE', 'Challenge'),
@@ -54,18 +58,15 @@ class Transaction(models.Model):
         blank=True
     )
 
-     # ---- Risk Scoring ----
+    # ---- Risk Scoring ----
     risk_score = models.FloatField(null=True, blank=True)
 
-    # ---- Context / Signals ----
-    device_type = models.CharField(max_length=100, null=True, blank=True, help_text="e.g. Mobile, Laptop, Tablet")
+    # ---- Context ----
+    device_type = models.CharField(max_length=100, null=True, blank=True)
     ip_address = models.GenericIPAddressField(null=True, blank=True)
-    channel = models.CharField(
-        max_length=50,
-        default='APP'
-    )  # APP / WEB / API
+    channel = models.CharField(max_length=50, default='APP')
 
-     # ---- OTP ----
+    # ---- OTP ----
     otp_required = models.BooleanField(default=False)
     otp_verified = models.BooleanField(default=False)
 

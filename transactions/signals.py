@@ -10,11 +10,16 @@ from fraud_engine.services.fraud_service import evaluate_transaction
 logger = logging.getLogger(__name__)
 
 
+# @receiver(post_save, sender=Transaction)
+# def run_fraud_check(sender, instance, created, **kwargs):
+#     if not created:
+#         return
 @receiver(post_save, sender=Transaction)
-def run_fraud_check(sender, instance, created, **kwargs):
-    if not created:
-        return
+def run_fraud_check(sender, instance, created, raw, **kwargs):
+    if raw:
+        return   # 🚨 VERY IMPORTANT
 
+    # your existing logic
     # Get user's past transactions (exclude current one)
     history_qs = Transaction.objects.filter(user=instance.user).exclude(pk=instance.pk)
     history_df = pd.DataFrame(list(history_qs.values(
